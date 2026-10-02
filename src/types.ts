@@ -35,6 +35,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
+  password?: string;
   password_hash?: string;
   department_id: string;
   department_name: string;
