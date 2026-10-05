@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Plus,
   FileDown,
@@ -18,9 +18,11 @@ import {
   AlertTriangle,
   User as UserIcon,
   MapPin,
-  Calendar
+  Calendar,
+  Upload
 } from 'lucide-react';
 import { Ticket, User, Location, Region } from '../types';
+import { UploadJsonModal } from './UploadJsonModal';
 
 interface ObservationsViewProps {
   tickets: Ticket[];
@@ -56,6 +58,7 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [priorityFilter, setPriorityFilter] = useState('ALL');
   const [technicianFilter, setTechnicianFilter] = useState('ALL');
+  const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [regionFilter, setRegionFilter] = useState('ALL');
   const [branchFilter, setBranchFilter] = useState('ALL');
   const [dateRangeFilter, setDateRangeFilter] = useState('ALL');
@@ -63,27 +66,30 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
   const [selectedTicketIds, setSelectedTicketIds] = useState<string[]>([]);
   const [assignDropdownId, setAssignDropdownId] = useState<string | null>(null);
 
+  // Filter tickets to only include Observation record types
+  const observationTickets = useMemo<Ticket[]>(() => {
+    return tickets.filter((t: Ticket) => !t.record_type || t.record_type === 'OBSERVATION');
+  }, [tickets]);
+
   // Status breakdown calculations
-  const totalCount = tickets.length;
-  const newCount = tickets.filter(t => t.status === 'NEW').length;
-  const openCount = tickets.filter(t => t.status === 'OPEN').length;
-  const inProgressCount = tickets.filter(t => t.status === 'IN PROGRESS').length;
-  const resolvedCount = tickets.filter(t => t.status === 'RESOLVED').length;
-  const closedCount = tickets.filter(t => t.status === 'CLOSED').length;
+  const totalCount = observationTickets.length;
+  const newCount = observationTickets.filter(t => t.status === 'NEW').length;
+  const openCount = observationTickets.filter(t => t.status === 'OPEN').length;
+  const inProgressCount = observationTickets.filter(t => t.status === 'IN PROGRESS').length;
+  const resolvedCount = observationTickets.filter(t => t.status === 'RESOLVED').length;
 
   const totalActiveQueue = openCount + newCount;
   const openPercent = totalCount > 0 ? Math.round(((openCount + newCount) / totalCount) * 100) : 0;
   const inProgressPercent = totalCount > 0 ? Math.round((inProgressCount / totalCount) * 100) : 0;
-  const resolvedPercent = totalCount > 0 ? Math.round(((resolvedCount + closedCount) / totalCount) * 100) : 0;
+  const resolvedPercent = totalCount > 0 ? Math.round((resolvedCount / totalCount) * 100) : 0;
 
   // Filter application
-  const filteredTickets = tickets.filter(t => {
+  const filteredTickets = observationTickets.filter(t => {
     // Tab pill filter
     if (selectedFilter === 'new' && t.status !== 'NEW') return false;
     if (selectedFilter === 'open' && t.status !== 'OPEN') return false;
     if (selectedFilter === 'in_progress' && t.status !== 'IN PROGRESS') return false;
     if (selectedFilter === 'resolved' && t.status !== 'RESOLVED') return false;
-    if (selectedFilter === 'closed' && t.status !== 'CLOSED') return false;
 
     // Search query
     if (searchQuery) {
@@ -142,6 +148,14 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
         </div>
 
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => setUploadModalOpen(true)}
+            className="px-3.5 py-2 text-xs font-bold rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100 transition-colors flex items-center gap-2 shadow-2xs cursor-pointer"
+          >
+            <Upload className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Upload Tickets JSON</span>
+          </button>
+
           <button
             onClick={() => window.print()}
             className="px-3.5 py-2 text-xs font-semibold rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-2 shadow-2xs"
@@ -260,7 +274,7 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
             <div className="text-[11px] text-slate-500 mb-3">Verified functional, closed & completed operational logs</div>
             <div className="flex items-baseline justify-between">
               <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-extrabold text-slate-900 tabular-nums">{resolvedCount + closedCount}</span>
+                <span className="text-3xl font-extrabold text-slate-900 tabular-nums">{resolvedCount}</span>
                 <span className="text-xs font-semibold text-emerald-600">{resolvedPercent}% resolution rate</span>
               </div>
               <span className="text-xs font-semibold text-slate-500 hover:text-emerald-700 flex items-center gap-1">
@@ -282,7 +296,7 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
                 ● In Progress: {inProgressCount} ({inProgressPercent}%)
               </span>
               <span className="flex items-center gap-1 text-emerald-600 font-semibold">
-                ● Resolved: {resolvedCount + closedCount} ({resolvedPercent}%)
+                ● Resolved: {resolvedCount} ({resolvedPercent}%)
               </span>
             </div>
           </div>
@@ -358,17 +372,6 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
             >
               ● Resolved <span className="ml-1 opacity-80">{resolvedCount}</span>
             </button>
-
-            <button
-              onClick={() => setSelectedFilter('closed')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors ${
-                selectedFilter === 'closed'
-                  ? 'bg-slate-700 text-white'
-                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-              }`}
-            >
-              Closed <span className="ml-1 opacity-80">{closedCount}</span>
-            </button>
           </div>
 
           {/* Search Box & Quick Controls */}
@@ -419,15 +422,8 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
                 <option value="NEW">NEW</option>
                 <option value="OPEN">OPEN</option>
                 <option value="ASSIGNED">ASSIGNED</option>
-                <option value="ACKNOWLEDGED">ACKNOWLEDGED</option>
-                <option value="UNDER INVESTIGATION">UNDER INVESTIGATION</option>
                 <option value="IN PROGRESS">IN PROGRESS</option>
-                <option value="PENDING">PENDING</option>
                 <option value="RESOLVED">RESOLVED</option>
-                <option value="VERIFICATION">VERIFICATION</option>
-                <option value="CLOSED">CLOSED</option>
-                <option value="REOPENED">REOPENED</option>
-                <option value="ARCHIVED">ARCHIVED</option>
               </select>
             </div>
 
@@ -541,7 +537,7 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
         <div className="flex items-center gap-3">
           <button
             onClick={() => {
-              const closed = filteredTickets.filter(t => t.status === 'RESOLVED' || t.status === 'CLOSED');
+              const closed = filteredTickets.filter(t => t.status === 'RESOLVED');
               setSelectedTicketIds(closed.map(t => t.id));
             }}
             className="text-xs text-slate-600 hover:text-slate-900 font-medium"
@@ -575,12 +571,12 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
                 </th>
                 <th className="py-3.5 px-4">TICKET #</th>
                 <th className="py-3.5 px-4">CREATED DATE ↓</th>
+                <th className="py-3.5 px-4">LOCATION / SITE</th>
                 <th className="py-3.5 px-4">SUBJECT / TITLE</th>
                 <th className="py-3.5 px-4">STATUS</th>
                 <th className="py-3.5 px-4">PRIORITY</th>
                 {slaEngineEnabled && <th className="py-3.5 px-4">SLA STATUS</th>}
                 <th className="py-3.5 px-4">ASSIGNED TECHNICIAN</th>
-                <th className="py-3.5 px-4">LOCATION / SITE</th>
                 <th className="py-3.5 px-4 text-right">ACTIONS</th>
               </tr>
             </thead>
@@ -609,15 +605,8 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
                     NEW: 'bg-blue-50 text-blue-700 border-blue-200',
                     OPEN: 'bg-sky-50 text-sky-700 border-sky-200',
                     ASSIGNED: 'bg-indigo-50 text-indigo-700 border-indigo-200',
-                    ACKNOWLEDGED: 'bg-teal-50 text-teal-700 border-teal-200',
-                    'UNDER INVESTIGATION': 'bg-cyan-50 text-cyan-700 border-cyan-200',
                     'IN PROGRESS': 'bg-amber-50 text-amber-700 border-amber-200',
-                    PENDING: 'bg-orange-50 text-orange-700 border-orange-200',
-                    RESOLVED: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-                    VERIFICATION: 'bg-purple-50 text-purple-700 border-purple-200',
-                    CLOSED: 'bg-slate-100 text-slate-700 border-slate-200',
-                    REOPENED: 'bg-rose-100 text-rose-800 border-rose-200',
-                    ARCHIVED: 'bg-slate-200 text-slate-800 border-slate-300'
+                    RESOLVED: 'bg-emerald-50 text-emerald-700 border-emerald-200'
                   }[ticket.status] || 'bg-slate-100 text-slate-700 border-slate-200';
 
                   return (
@@ -649,12 +638,20 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
                         {formatDate(ticket.created_at)}
                       </td>
 
+                      {/* Location / Site */}
+                      <td className="py-3.5 px-4 whitespace-nowrap text-slate-700">
+                        <div className="flex items-center gap-1.5">
+                          <Store className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                          <span className="font-medium">{ticket.location_name}</span>
+                        </div>
+                      </td>
+
                       {/* Subject / Title */}
                       <td className="py-3.5 px-4 font-semibold text-slate-900 max-w-xs truncate">
                         <div className="flex items-center gap-1.5">
                           <span
                             onClick={() => onSelectTicket(ticket)}
-                            className="hover:text-blue-600 cursor-pointer"
+                            className="hover:text-blue-600 cursor-pointer font-bold"
                           >
                             {ticket.subject}
                           </span>
@@ -674,15 +671,8 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
                           <option value="NEW">NEW</option>
                           <option value="OPEN">OPEN</option>
                           <option value="ASSIGNED">ASSIGNED</option>
-                          <option value="ACKNOWLEDGED">ACKNOWLEDGED</option>
-                          <option value="UNDER INVESTIGATION">UNDER INVESTIGATION</option>
                           <option value="IN PROGRESS">IN PROGRESS</option>
-                          <option value="PENDING">PENDING</option>
                           <option value="RESOLVED">RESOLVED</option>
-                          <option value="VERIFICATION">VERIFICATION</option>
-                          <option value="CLOSED">CLOSED</option>
-                          <option value="REOPENED">REOPENED</option>
-                          <option value="ARCHIVED">ARCHIVED</option>
                         </select>
                       </td>
 
@@ -760,35 +750,29 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
                         </div>
                       </td>
 
-                      {/* Location / Site */}
-                      <td className="py-3.5 px-4 whitespace-nowrap text-slate-700">
-                        <div className="flex items-center gap-1.5">
-                          <Store className="w-3.5 h-3.5 text-slate-400" />
-                          <span className="font-medium">{ticket.location_name}</span>
-                        </div>
-                      </td>
-
                       {/* Actions */}
                       <td className="py-3.5 px-4 text-right whitespace-nowrap">
                         <div className="flex items-center justify-end gap-2">
                           <button
                             onClick={() => onSelectTicket(ticket)}
                             title="Inspect ticket details and comments"
-                            className="p-1 text-slate-500 hover:text-slate-900 rounded hover:bg-slate-100"
+                            className="p-1 text-slate-500 hover:text-slate-900 rounded hover:bg-slate-100 cursor-pointer"
                           >
                             <Eye className="w-4 h-4" />
                           </button>
-                          <button
-                            onClick={() => {
-                              if (confirm(`Permanently delete ticket ${ticket.ticket_number}?`)) {
-                                onDeleteTicket(ticket.id);
-                              }
-                            }}
-                            title="Delete ticket"
-                            className="p-1 text-slate-400 hover:text-rose-600 rounded hover:bg-rose-50"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                          {(currentUser?.role === 'SUPER_ADMIN' || currentUser?.role === 'SUPERVISOR') && (
+                            <button
+                              onClick={() => {
+                                if (confirm(`Permanently delete ticket ${ticket.ticket_number}?`)) {
+                                  onDeleteTicket(ticket.id);
+                                }
+                              }}
+                              title="Delete ticket"
+                              className="p-1 text-slate-400 hover:text-rose-600 rounded hover:bg-rose-50 cursor-pointer"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -799,6 +783,15 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
           </table>
         </div>
       </div>
+
+      <UploadJsonModal
+        isOpen={uploadModalOpen}
+        onClose={() => setUploadModalOpen(false)}
+        defaultTarget="tickets"
+        onImportSuccess={() => {
+          window.location.reload();
+        }}
+      />
     </div>
   );
 };

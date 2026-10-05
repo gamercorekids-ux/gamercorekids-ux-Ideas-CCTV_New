@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   Department,
   Region,
@@ -11,6 +11,7 @@ import {
   DbStatus
 } from './types';
 import * as api from './api';
+import { DEFAULT_ISSUE_CATEGORIES } from './constants/categories';
 import { Header } from './components/Header';
 import { Navigation, TabId } from './components/Navigation';
 import { DashboardView } from './components/DashboardView';
@@ -357,6 +358,43 @@ export default function App() {
     }
   };
 
+  const rawSlaSetting = settings?.general?.slaEngineEnabled;
+  const isSlaEnabled =
+    rawSlaSetting !== false &&
+    (rawSlaSetting as any) !== 'false' &&
+    (rawSlaSetting as any) !== 0 &&
+    (rawSlaSetting as any) !== '0';
+
+  const activeIssueCategories = useMemo(() => {
+    const customList = (settings?.general as any)?.customCategories || [];
+    const customNames = customList
+      .map((c: any) => (typeof c === 'string' ? c : c?.name))
+      .filter(Boolean);
+    return Array.from(new Set([...DEFAULT_ISSUE_CATEGORIES, ...customNames]));
+  }, [(settings?.general as any)?.customCategories]);
+
+  // Auto-redirect away from SLA engine tab if disabled
+  useEffect(() => {
+    if (!isSlaEnabled && activeTab === 'sla-engine') {
+      setActiveTab('dashboard');
+    }
+  }, [isSlaEnabled, activeTab]);
+
+  const handleToggleSlaEngine = async (enabled: boolean) => {
+    const generalSettings = settings?.general || {
+      appName: 'Ideas Operations Desk',
+      maintenanceMode: false,
+      slaEngineEnabled: true,
+      maxPictureSizeMb: 2,
+      autoCompress: true,
+      strictToastWarning: true
+    };
+    await handleUpdateSettings('general', {
+      ...generalSettings,
+      slaEngineEnabled: enabled
+    });
+  };
+
   const handleUpdateSlaRule = async (id: string, updates: Partial<SlaRule>) => {
     try {
       const updated = await api.updateSlaRule(id, updates);
@@ -368,8 +406,28 @@ export default function App() {
 
   const handleUpdateSettings = async (section: string, data: any) => {
     try {
-      const updated = await api.updateSettings(section, data, currentUser!.name);
-      setSettings(prev => (prev ? { ...prev, [section]: updated } : null));
+      const updated = await api.updateSettings(section, data, currentUser?.name || 'Super Admin');
+      const updatedSectionData = updated || data;
+      setSettings(prev => {
+        const base = prev || {
+          general: {
+            appName: 'ideas - Surveillance Operations Command System',
+            maintenanceMode: false,
+            slaEngineEnabled: true,
+            maxPictureSizeMb: 2,
+            autoCompress: true,
+            strictToastWarning: true
+          },
+          smtp: { host: 'smtp.gmail.com', port: 587, user: '', pass: '', from: '' },
+          branding: { heroTitle: '', heroSubtitle: '', subtextDescription: '', badgeText: '' },
+          rbac: { roles: [] },
+          mysql: { host: '', database: '', user: '', password: '' }
+        };
+        return {
+          ...base,
+          [section]: updatedSectionData
+        } as SystemSettings;
+      });
       const logs = await api.fetchAuditLogs();
       setAuditLogs(logs);
     } catch (err) {
@@ -451,6 +509,7 @@ export default function App() {
         onTabChange={tab => setActiveTab(tab)}
         currentUser={currentUser!}
         ticketsCount={tickets.length}
+        slaEngineEnabled={isSlaEnabled}
       />
 
       {/* 3. Main View Area */}
@@ -466,6 +525,7 @@ export default function App() {
             onSelectTicket={t => setSelectedTicket(t)}
             onOpenDbModal={() => setIsDbModalOpen(true)}
             onRefreshData={loadData}
+            slaEngineEnabled={isSlaEnabled}
           />
         )}
 
@@ -482,6 +542,7 @@ export default function App() {
             onUpdateTicketPriority={handleUpdateTicketPriority}
             onAssignTechnician={handleAssignTechnician}
             onDeleteTicket={handleDeleteTicket}
+            slaEngineEnabled={isSlaEnabled}
           />
         )}
 
@@ -498,6 +559,7 @@ export default function App() {
             onUpdateTicketPriority={handleUpdateTicketPriority}
             onAssignTechnician={handleAssignTechnician}
             onDeleteTicket={handleDeleteTicket}
+            slaEngineEnabled={isSlaEnabled}
           />
         )}
 
@@ -505,6 +567,7 @@ export default function App() {
           <LocationsView
             locations={locations}
             regions={regions}
+            currentUser={currentUser!}
             onAddBranch={handleAddBranch}
             onUpdateBranch={handleUpdateBranch}
             onDeleteBranch={handleDeleteBranch}
@@ -526,6 +589,8 @@ export default function App() {
           <SlaEngineView
             rules={slaRules}
             onUpdateRule={handleUpdateSlaRule}
+            slaEngineEnabled={isSlaEnabled}
+            onToggleSlaEngine={handleToggleSlaEngine}
           />
         )}
 
@@ -579,6 +644,7 @@ export default function App() {
           onUpdatePriority={handleUpdateTicketPriority}
           onAssignTechnician={handleAssignTechnician}
           onAddComment={handleAddComment}
+          slaEngineEnabled={isSlaEnabled}
         />
       )}
 
@@ -590,6 +656,8 @@ export default function App() {
           currentUser={currentUser!}
           onClose={() => setIsNewTicketOpen(false)}
           onSubmit={handleCreateTicket}
+          slaEngineEnabled={isSlaEnabled}
+          categories={activeIssueCategories}
         />
       )}
 

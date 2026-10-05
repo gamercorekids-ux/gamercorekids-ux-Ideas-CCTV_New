@@ -122,7 +122,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const notifyTicketStatusChanged = useCallback(
     (ticket: Ticket, oldStatus: string, newStatus: string, onSelectTicket?: (ticket: Ticket) => void) => {
-      const isResolved = newStatus === 'RESOLVED' || newStatus === 'CLOSED';
+      const isResolved = newStatus === 'RESOLVED';
       addToast({
         type: isResolved ? 'success' : 'status_change',
         title: `Status Changed: ${ticket.ticket_number}`,

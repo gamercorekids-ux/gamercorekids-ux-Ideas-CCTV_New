@@ -13,13 +13,16 @@ import {
   EyeOff,
   Eye,
   CheckCircle2,
-  Globe
+  Globe,
+  Upload
 } from 'lucide-react';
-import { Location, Region } from '../types';
+import { Location, Region, User } from '../types';
+import { UploadJsonModal } from './UploadJsonModal';
 
 interface LocationsViewProps {
   locations: Location[];
   regions: Region[];
+  currentUser?: User;
   onAddBranch: (data: Partial<Location>) => void;
   onUpdateBranch: (id: string, data: Partial<Location>) => void;
   onDeleteBranch: (id: string) => void;
@@ -31,6 +34,7 @@ interface LocationsViewProps {
 export const LocationsView: React.FC<LocationsViewProps> = ({
   locations,
   regions,
+  currentUser,
   onAddBranch,
   onUpdateBranch,
   onDeleteBranch,
@@ -44,6 +48,11 @@ export const LocationsView: React.FC<LocationsViewProps> = ({
   const [showAddModal, setShowAddModal] = useState(false);
   const [showCreateRegionModal, setShowCreateRegionModal] = useState(false);
   const [editingLocation, setEditingLocation] = useState<Location | null>(null);
+  const [uploadModalOpen, setUploadModalOpen] = useState(false);
+
+  // Check if role is Super Admin or Supervisor
+  const isSuperAdminOrSupervisor =
+    currentUser?.role === 'SUPER_ADMIN' || currentUser?.role === 'SUPERVISOR';
 
   // Form states
   const [branchName, setBranchName] = useState('');
@@ -171,21 +180,31 @@ export const LocationsView: React.FC<LocationsViewProps> = ({
           </button>
 
           <button
-            onClick={() => {
-              setEditingLocation(null);
-              setBranchName('');
-              setBranchCode(`ST${Math.floor(100 + Math.random() * 900)}`);
-              setAddress('');
-              setContactPerson('');
-              setPhone('');
-              setEmail('');
-              setShowAddModal(true);
-            }}
-            className="px-4 py-2 text-xs font-semibold rounded-lg bg-[#0F2942] hover:bg-[#163859] text-white transition-colors flex items-center gap-2 shadow-2xs"
+            onClick={() => setUploadModalOpen(true)}
+            className="px-3.5 py-2 text-xs font-bold rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100 transition-colors flex items-center gap-2 shadow-2xs cursor-pointer"
           >
-            <Plus className="w-4 h-4 text-emerald-400" />
-            <span>ADD NEW BRANCH PROFILE</span>
+            <Upload className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Upload Locations JSON</span>
           </button>
+
+          {isSuperAdminOrSupervisor && (
+            <button
+              onClick={() => {
+                setEditingLocation(null);
+                setBranchName('');
+                setBranchCode(`ST${Math.floor(100 + Math.random() * 900)}`);
+                setAddress('');
+                setContactPerson('');
+                setPhone('');
+                setEmail('');
+                setShowAddModal(true);
+              }}
+              className="px-4 py-2 text-xs font-semibold rounded-lg bg-[#0F2942] hover:bg-[#163859] text-white transition-colors flex items-center gap-2 shadow-2xs cursor-pointer"
+            >
+              <Plus className="w-4 h-4 text-emerald-400" />
+              <span>ADD NEW BRANCH PROFILE</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -199,13 +218,15 @@ export const LocationsView: React.FC<LocationsViewProps> = ({
               Global regions configured across the surveillance network
             </span>
           </div>
-          <button
-            onClick={() => setShowCreateRegionModal(true)}
-            className="text-xs font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>Create Region</span>
-          </button>
+          {isSuperAdminOrSupervisor && (
+            <button
+              onClick={() => setShowCreateRegionModal(true)}
+              className="text-xs font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1 cursor-pointer"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Create Region</span>
+            </button>
+          )}
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
@@ -227,24 +248,29 @@ export const LocationsView: React.FC<LocationsViewProps> = ({
                 </div>
 
                 <div className="flex items-center gap-3 pt-3 mt-2 border-t border-slate-200/60 text-[11px]">
-                  <button
-                    onClick={() => {
-                      const newName = prompt('Update region name:', region.name);
-                      if (newName) onCreateRegion(newName, region.code);
-                    }}
-                    className="text-slate-500 hover:text-slate-900 flex items-center gap-1"
-                  >
-                    <Edit2 className="w-3 h-3" />
-                    <span>Edit</span>
-                  </button>
-                  <button
-                    onClick={() => {
-                      if (confirm(`Delete region ${region.name}?`)) onDeleteRegion(region.id);
-                    }}
-                    className="text-slate-400 hover:text-rose-600"
-                  >
-                    <Trash2 className="w-3 h-3" />
-                  </button>
+                  {isSuperAdminOrSupervisor && (
+                    <button
+                      onClick={() => {
+                        const newName = prompt('Update region name:', region.name);
+                        if (newName) onCreateRegion(newName, region.code);
+                      }}
+                      className="text-slate-500 hover:text-slate-900 flex items-center gap-1 cursor-pointer"
+                    >
+                      <Edit2 className="w-3 h-3" />
+                      <span>Edit</span>
+                    </button>
+                  )}
+                  {isSuperAdminOrSupervisor && (
+                    <button
+                      onClick={() => {
+                        if (confirm(`Delete region ${region.name}?`)) onDeleteRegion(region.id);
+                      }}
+                      title="Delete Region"
+                      className="text-slate-400 hover:text-rose-600 cursor-pointer"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  )}
                 </div>
               </div>
             );
@@ -382,32 +408,36 @@ export const LocationsView: React.FC<LocationsViewProps> = ({
                   {/* Actions */}
                   <td className="py-3.5 px-4 text-right whitespace-nowrap">
                     <div className="flex items-center justify-end gap-2 text-slate-400">
-                      <button
-                        onClick={() => handleOpenEdit(loc)}
-                        title="Edit Branch Profile"
-                        className="hover:text-slate-900 p-1"
-                      >
-                        <Edit2 className="w-3.5 h-3.5" />
-                      </button>
+                      {isSuperAdminOrSupervisor && (
+                        <button
+                          onClick={() => handleOpenEdit(loc)}
+                          title="Edit Branch Profile"
+                          className="hover:text-slate-900 p-1 cursor-pointer"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
                       <button
                         onClick={() => {
                           const nextStatus = loc.status === 'Active' ? 'Maintenance' : 'Active';
                           onUpdateBranch(loc.id, { status: nextStatus });
                         }}
                         title="Toggle Operational Status"
-                        className="hover:text-amber-600 p-1"
+                        className="hover:text-amber-600 p-1 cursor-pointer"
                       >
                         {loc.status === 'Active' ? <Eye className="w-3.5 h-3.5 text-emerald-600" /> : <EyeOff className="w-3.5 h-3.5" />}
                       </button>
-                      <button
-                        onClick={() => {
-                          if (confirm(`Remove location ${loc.name}?`)) onDeleteBranch(loc.id);
-                        }}
-                        title="Remove Location"
-                        className="hover:text-rose-600 p-1"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+                      {isSuperAdminOrSupervisor && (
+                        <button
+                          onClick={() => {
+                            if (confirm(`Remove location ${loc.name}?`)) onDeleteBranch(loc.id);
+                          }}
+                          title="Remove Location"
+                          className="hover:text-rose-600 p-1 cursor-pointer"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -589,6 +619,13 @@ export const LocationsView: React.FC<LocationsViewProps> = ({
           </div>
         </div>
       )}
+
+      <UploadJsonModal
+        isOpen={uploadModalOpen}
+        onClose={() => setUploadModalOpen(false)}
+        defaultTarget="locations"
+        onImportSuccess={() => onSyncData()}
+      />
     </div>
   );
 };

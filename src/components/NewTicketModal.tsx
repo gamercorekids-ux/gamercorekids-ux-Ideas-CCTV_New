@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   X,
   Upload,
@@ -8,40 +8,90 @@ import {
   MapPin,
   Clock,
   ShieldCheck,
-  Check
+  Check,
+  ZoomIn,
+  Download,
+  Mic
 } from 'lucide-react';
-import { Department, Location, User, Ticket } from '../types';
+import { Department, Location, User, Ticket, Region } from '../types';
+import { ISSUE_CATEGORIES } from '../constants/categories';
+import { VoiceRecorder } from './VoiceRecorder';
+import { ImageLightboxModal } from './ImageLightboxModal';
+import { downloadImage } from '../utils/download';
 
 interface NewTicketModalProps {
   departments: Department[];
   locations: Location[];
+  regions?: Region[];
   users: User[];
   currentUser: User;
   onClose: () => void;
   onSubmit: (ticketData: Partial<Ticket>) => void;
   slaEngineEnabled?: boolean;
+  categories?: string[];
 }
 
 export const NewTicketModal: React.FC<NewTicketModalProps> = ({
   departments,
   locations,
+  regions,
   users,
   currentUser,
   onClose,
   onSubmit,
-  slaEngineEnabled = true
+  slaEngineEnabled = true,
+  categories
 }) => {
   const [subject, setSubject] = useState('');
   const [description, setDescription] = useState('');
+  const [recordType, setRecordType] = useState<'OBSERVATION' | 'TECHNICAL'>(
+    currentUser.role === 'TECHNICIAN' ? 'TECHNICAL' : 'OBSERVATION'
+  );
   const [departmentId, setDepartmentId] = useState(departments[0]?.id || 'dept_surveillance');
-  const [locationId, setLocationId] = useState(locations[0]?.id || 'loc_001');
-  const [category, setCategory] = useState('GENERAL');
+  const [selectedRegion, setSelectedRegion] = useState('SOUTH');
+  const [locationId, setLocationId] = useState('');
+  const [category, setCategory] = useState('Access Violation');
+  const [customCategory, setCustomCategory] = useState('');
   const [priority, setPriority] = useState<'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW'>('MEDIUM');
-  const [assignedUserId, setAssignedUserId] = useState('');
+  const [assignedUserId, setAssignedUserId] = useState(
+    currentUser.role === 'TECHNICIAN' ? currentUser.id : ''
+  );
   const [evidenceImages, setEvidenceImages] = useState<string[]>([]);
   const [evidenceWarning, setEvidenceWarning] = useState<string | null>(null);
 
-  const selectedLocation = locations.find(l => l.id === locationId) || locations[0];
+  // Voice Note & Lightbox State
+  const [attachedVoiceNote, setAttachedVoiceNote] = useState<string | null>(null);
+  const [attachedVoiceDuration, setAttachedVoiceDuration] = useState<number>(15);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
+
+  // Filter stores / locations dynamically based on selected region
+  const filteredLocations = useMemo(() => {
+    if (selectedRegion === 'ALL') return locations;
+    return locations.filter(loc => {
+      const regName = (loc.region_name || '').toLowerCase();
+      const regId = (loc.region_id || '').toLowerCase();
+      if (selectedRegion === 'SOUTH') return regName.includes('south') || regId.includes('south');
+      if (selectedRegion === 'CENTRAL') return regName.includes('central') || regId.includes('central');
+      if (selectedRegion === 'NORTH') return regName.includes('north') || regId.includes('north');
+      if (selectedRegion === 'CAFE') return regName.includes('cafe') || regId.includes('cafe');
+      return true;
+    });
+  }, [locations, selectedRegion]);
+
+  // Keep locationId valid when selectedRegion changes
+  useEffect(() => {
+    if (filteredLocations.length > 0) {
+      const exists = filteredLocations.some(l => l.id === locationId);
+      if (!exists) {
+        setLocationId(filteredLocations[0].id);
+      }
+    } else {
+      setLocationId('');
+    }
+  }, [filteredLocations, locationId]);
+
+  const selectedLocation = locations.find(l => l.id === locationId) || filteredLocations[0] || locations[0];
   const selectedDept = departments.find(d => d.id === departmentId) || departments[0];
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -91,24 +141,54 @@ export const NewTicketModal: React.FC<NewTicketModalProps> = ({
     e.preventDefault();
     if (!subject.trim()) return;
 
-    const assignedUser = users.find(u => u.id === assignedUserId);
+    // Once a technician creates a ticket, auto-assign to him if unassigned
+    let finalAssignedId = assignedUserId;
+    let finalAssignedName = 'Unassigned';
+
+    if (assignedUserId) {
+      const assignedUser = users.find(u => u.id === assignedUserId);
+      finalAssignedName = assignedUser ? assignedUser.name : 'Unassigned';
+    } else if (currentUser.role === 'TECHNICIAN') {
+      finalAssignedId = currentUser.id;
+      finalAssignedName = currentUser.name;
+    }
+
+    const initialStatus = finalAssignedId ? 'ASSIGNED' : 'NEW';
+    const finalCategory = category === 'Custom' ? (customCategory.trim() || 'Custom') : category;
+
+    const initialComments = attachedVoiceNote
+      ? [
+          {
+            id: `cmt-${Date.now()}`,
+            ticket_id: 'pending',
+            user_id: currentUser.id,
+            user_name: currentUser.name,
+            user_role: currentUser.role,
+            comment: `[VOICE_NOTE:${attachedVoiceDuration}s] ${attachedVoiceNote}`,
+            created_at: new Date().toISOString(),
+            is_internal: false
+          }
+        ]
+      : [];
 
     onSubmit({
       subject,
       description,
+      record_type: recordType,
       department_id: departmentId,
       department_name: selectedDept?.name || 'Security Operations & Surveillance',
       location_id: locationId,
       location_name: selectedLocation?.name || 'Agency Jaranwala',
       region_name: selectedLocation?.region_name || 'Central',
-      category,
+      category: finalCategory,
       priority,
-      status: 'NEW',
-      assigned_technician_id: assignedUserId || null,
-      assigned_technician_name: assignedUser ? assignedUser.name : 'Unassigned',
+      status: initialStatus,
+      assigned_technician_id: finalAssignedId || null,
+      assigned_technician_name: finalAssignedName,
       evidence_images: evidenceImages,
       created_by_user_id: currentUser.id,
-      created_by_name: currentUser.name
+      created_by_name: currentUser.name,
+      comments: initialComments
     });
 
     onClose();
@@ -137,6 +217,22 @@ export const NewTicketModal: React.FC<NewTicketModalProps> = ({
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+          {/* Record Type & Destination (Matching image) */}
+          <div className="space-y-1">
+            <div className="flex items-center justify-between">
+              <label className="font-bold text-slate-900 block text-xs">Record Type & Destination</label>
+              <span className="text-[11px] font-semibold text-amber-700">Select where this record will reflect</span>
+            </div>
+            <select
+              value={recordType}
+              onChange={e => setRecordType(e.target.value as 'OBSERVATION' | 'TECHNICAL')}
+              className="w-full px-3 py-2.5 border-2 border-amber-400/90 bg-amber-50/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400/50 font-bold text-slate-900 text-xs shadow-2xs cursor-pointer"
+            >
+              <option value="OBSERVATION">👁 Observation (Reflects in "Observations" tab)</option>
+              <option value="TECHNICAL">🔧 Technical Ticket (Reflects in "Technician Tickets" tab)</option>
+            </select>
+          </div>
+
           {/* Subject / Title */}
           <div>
             <label className="font-bold text-slate-700 block mb-1">Subject / Incident Title *</label>
@@ -182,23 +278,48 @@ export const NewTicketModal: React.FC<NewTicketModalProps> = ({
             </div>
           </div>
 
-          {/* Location & Category */}
+          {/* Region & Location Row */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="font-bold text-slate-700 block mb-1">Location / Branch Site ({locations.length}) *</label>
+              <label className="font-bold text-slate-700 block mb-1">Region *</label>
               <select
-                value={locationId}
-                onChange={e => setLocationId(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none text-slate-800"
+                value={selectedRegion}
+                onChange={e => setSelectedRegion(e.target.value)}
+                className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-emerald-500 font-bold text-slate-800"
               >
-                {locations.map(loc => (
-                  <option key={loc.id} value={loc.id}>
-                    {loc.name} ({loc.branch_code} · {loc.region_name})
-                  </option>
-                ))}
+                <option value="SOUTH">South Region</option>
+                <option value="CENTRAL">Central Region</option>
+                <option value="NORTH">North Region</option>
+                <option value="CAFE">Ideas Cafe</option>
+                <option value="ALL">All Regions</option>
               </select>
             </div>
 
+            <div>
+              <label className="font-bold text-slate-700 block mb-1">
+                Location / Branch Site ({filteredLocations.length}) *
+              </label>
+              <select
+                value={locationId}
+                onChange={e => setLocationId(e.target.value)}
+                required
+                className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-emerald-500 text-slate-800 font-semibold"
+              >
+                {filteredLocations.length === 0 ? (
+                  <option value="">No stores found in this region</option>
+                ) : (
+                  filteredLocations.map(loc => (
+                    <option key={loc.id} value={loc.id}>
+                      {loc.name} ({loc.branch_code} · {loc.region_name})
+                    </option>
+                  ))
+                )}
+              </select>
+            </div>
+          </div>
+
+          {/* Issue Category & Technician */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="font-bold text-slate-700 block mb-1">Issue Category</label>
               <select
@@ -206,30 +327,38 @@ export const NewTicketModal: React.FC<NewTicketModalProps> = ({
                 onChange={e => setCategory(e.target.value)}
                 className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none text-slate-800"
               >
-                <option value="GENERAL">GENERAL</option>
-                <option value="HARDWARE / CAMERA">HARDWARE / CAMERA</option>
-                <option value="NETWORK / CONNECTIVITY">NETWORK / CONNECTIVITY</option>
-                <option value="ACCESS CONTROL">ACCESS CONTROL</option>
-                <option value="HVAC / CHILLER">HVAC / CHILLER</option>
+                {(categories && categories.length > 0 ? categories : ISSUE_CATEGORIES).map(cat => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
+                ))}
+              </select>
+              {category === 'Custom' && (
+                <input
+                  type="text"
+                  placeholder="Specify custom issue category..."
+                  value={customCategory}
+                  onChange={e => setCustomCategory(e.target.value)}
+                  className="w-full mt-2 px-3 py-1.5 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500 text-slate-800"
+                />
+              )}
+            </div>
+
+            <div>
+              <label className="font-bold text-slate-700 block mb-1">Assign Field Operator / Technician</label>
+              <select
+                value={assignedUserId}
+                onChange={e => setAssignedUserId(e.target.value)}
+                className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none text-slate-800"
+              >
+                <option value="">Leave Unassigned (Triage in Queue)</option>
+                {users.map(u => (
+                  <option key={u.id} value={u.id}>
+                    {u.name} — {u.role} ({u.department_name})
+                  </option>
+                ))}
               </select>
             </div>
-          </div>
-
-          {/* Assigned Technician */}
-          <div>
-            <label className="font-bold text-slate-700 block mb-1">Assign Field Operator / Technician</label>
-            <select
-              value={assignedUserId}
-              onChange={e => setAssignedUserId(e.target.value)}
-              className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none text-slate-800"
-            >
-              <option value="">Leave Unassigned (Triage in Queue)</option>
-              {users.map(u => (
-                <option key={u.id} value={u.id}>
-                  {u.name} — {u.role} ({u.department_name})
-                </option>
-              ))}
-            </select>
           </div>
 
           {/* Detailed Narrative */}
@@ -285,12 +414,47 @@ export const NewTicketModal: React.FC<NewTicketModalProps> = ({
             {evidenceImages.length > 0 && (
               <div className="grid grid-cols-4 gap-2 pt-2">
                 {evidenceImages.map((img, idx) => (
-                  <div key={idx} className="relative rounded-lg overflow-hidden border border-slate-200 aspect-video">
-                    <img src={img} alt="Captured" className="w-full h-full object-cover" />
+                  <div key={idx} className="relative rounded-lg overflow-hidden border border-slate-200 aspect-video group bg-slate-900 shadow-2xs">
+                    <img src={img} alt="Captured" className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                    
+                    {/* Hover Overlay with Enlarge & Download Actions */}
+                    <div className="absolute inset-0 bg-slate-950/70 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1 p-1">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setLightboxIndex(idx);
+                          setLightboxOpen(true);
+                        }}
+                        className="w-full py-0.5 px-1 bg-white/20 hover:bg-white/30 text-white rounded text-[10px] font-bold flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                      >
+                        <ZoomIn className="w-3 h-3 text-emerald-400" />
+                        <span>Enlarge</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => downloadImage(img, `evidence-photo-${idx + 1}.png`)}
+                        className="w-full py-0.5 px-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded text-[10px] font-bold flex items-center justify-center gap-1 transition-colors shadow-md cursor-pointer"
+                      >
+                        <Download className="w-3 h-3" />
+                        <span>Download</span>
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
             )}
+          </div>
+
+          {/* Voice Note Section (15s Max) */}
+          <div>
+            <VoiceRecorder
+              onSendVoiceNote={(audio, duration) => {
+                setAttachedVoiceNote(audio);
+                setAttachedVoiceDuration(duration);
+              }}
+              maxDurationSeconds={15}
+              buttonLabel="Attach 15s Voice Note"
+            />
           </div>
 
           {/* SLA Rule Summary Preview */}
@@ -321,6 +485,16 @@ export const NewTicketModal: React.FC<NewTicketModalProps> = ({
           </div>
         </form>
       </div>
+
+      {/* Image Lightbox Modal */}
+      {lightboxOpen && evidenceImages.length > 0 && (
+        <ImageLightboxModal
+          images={evidenceImages}
+          initialIndex={lightboxIndex}
+          title="New Incident Evidence Preview"
+          onClose={() => setLightboxOpen(false)}
+        />
+      )}
     </div>
   );
 };

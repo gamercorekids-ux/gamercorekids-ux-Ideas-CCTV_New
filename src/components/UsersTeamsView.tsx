@@ -13,9 +13,11 @@ import {
   CheckCircle2,
   Copy,
   Check,
-  X
+  X,
+  Upload
 } from 'lucide-react';
 import { User, Department } from '../types';
+import { UploadJsonModal } from './UploadJsonModal';
 
 interface UsersTeamsViewProps {
   users: User[];
@@ -42,6 +44,7 @@ export const UsersTeamsView: React.FC<UsersTeamsViewProps> = ({
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [copiedEmail, setCopiedEmail] = useState<string | null>(null);
+  const [uploadModalOpen, setUploadModalOpen] = useState(false);
 
   // Form states
   const [name, setName] = useState('');
@@ -139,6 +142,14 @@ export const UsersTeamsView: React.FC<UsersTeamsViewProps> = ({
         </div>
 
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => setUploadModalOpen(true)}
+            className="px-3.5 py-2 text-xs font-bold rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100 transition-colors flex items-center gap-2 shadow-2xs cursor-pointer"
+          >
+            <Upload className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Upload Users JSON</span>
+          </button>
+
           <button
             onClick={onOpenManageDepartments}
             className="px-3.5 py-2 text-xs font-semibold rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-2 shadow-2xs"
@@ -522,6 +533,15 @@ export const UsersTeamsView: React.FC<UsersTeamsViewProps> = ({
           </div>
         </div>
       )}
+
+      <UploadJsonModal
+        isOpen={uploadModalOpen}
+        onClose={() => setUploadModalOpen(false)}
+        defaultTarget="users"
+        onImportSuccess={() => {
+          window.location.reload();
+        }}
+      />
     </div>
   );
 };

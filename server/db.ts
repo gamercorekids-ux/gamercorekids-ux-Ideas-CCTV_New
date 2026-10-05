@@ -73,13 +73,14 @@ export interface TicketComment {
 export interface Ticket {
   id: string;
   ticket_number: string;
+  record_type?: 'OBSERVATION' | 'TECHNICAL';
   subject: string;
   description: string;
   department_id: string;
   department_name: string;
   category: string;
   priority: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
-  status: 'NEW' | 'OPEN' | 'IN PROGRESS' | 'RESOLVED' | 'CLOSED';
+  status: 'NEW' | 'OPEN' | 'ASSIGNED' | 'IN PROGRESS' | 'RESOLVED';
   assigned_technician_id: string | null;
   assigned_technician_name: string;
   location_id: string;
@@ -535,11 +536,11 @@ const INITIAL_TICKETS: Ticket[] = [
   {
     id: 'ticket_531656',
     ticket_number: 'CMP-2026-531656',
-    subject: 'TEST1',
+    subject: 'Intermittent CCTV Frame Drops Channel 04',
     description: 'NVR video packet drop observed across Channel 04. Check switch RJ45 termination and PoE port budget.',
     department_id: 'dept_surveillance',
     department_name: 'Security Operations & Surveillance',
-    category: 'GENERAL',
+    category: 'CCTV CAM Issue',
     priority: 'MEDIUM',
     status: 'NEW',
     assigned_technician_id: null,
@@ -555,6 +556,106 @@ const INITIAL_TICKETS: Ticket[] = [
     created_by_name: 'Surveillance Super Admin',
     created_at: '2026-09-27T10:28:48.808Z',
     updated_at: '2026-09-27T10:28:48.808Z',
+    comments: []
+  },
+  {
+    id: 'ticket_531657',
+    ticket_number: 'CMP-2026-531657',
+    subject: 'Restricted Backroom Access Door Forced Open',
+    description: 'Access violation alarm triggered at main inventory vault door at 2:15 AM without badge swipe.',
+    department_id: 'dept_surveillance',
+    department_name: 'Security Operations & Surveillance',
+    category: 'Access Violation',
+    priority: 'CRITICAL',
+    status: 'OPEN',
+    assigned_technician_id: 'usr_tech_01',
+    assigned_technician_name: 'Muhammad Tariq',
+    location_id: 'loc_002',
+    location_name: 'Agency Quetta',
+    region_name: 'South',
+    sla_deadline: '2026-09-28T14:00:00.000Z',
+    sla_status: 'ON TRACK',
+    sla_remaining_hours: 1.5,
+    evidence_images: [],
+    created_by_user_id: 'admin-surveillance',
+    created_by_name: 'Surveillance Super Admin',
+    created_at: '2026-09-27T11:00:00.000Z',
+    updated_at: '2026-09-27T11:00:00.000Z',
+    comments: []
+  },
+  {
+    id: 'ticket_531658',
+    ticket_number: 'CMP-2026-531658',
+    subject: 'Unattended Cash Register Drawer Till SOP Violation',
+    description: 'POS Terminal 02 cash drawer left open during peak customer checkout hours without cashier present.',
+    department_id: 'dept_surveillance',
+    department_name: 'Security Operations & Surveillance',
+    category: 'Cash Till SOP Violation',
+    priority: 'HIGH',
+    status: 'IN PROGRESS',
+    assigned_technician_id: 'usr_tech_01',
+    assigned_technician_name: 'Muhammad Tariq',
+    location_id: 'loc_003',
+    location_name: 'Cafe DMC',
+    region_name: 'Central',
+    sla_deadline: '2026-09-28T16:00:00.000Z',
+    sla_status: 'ON TRACK',
+    sla_remaining_hours: 3.8,
+    evidence_images: [],
+    created_by_user_id: 'admin-surveillance',
+    created_by_name: 'Surveillance Super Admin',
+    created_at: '2026-09-27T12:00:00.000Z',
+    updated_at: '2026-09-27T12:00:00.000Z',
+    comments: []
+  },
+  {
+    id: 'ticket_531659',
+    ticket_number: 'CMP-2026-531659',
+    subject: 'Guard Post Inactive During Night Shift',
+    description: 'On-duty security guard observed sleeping at main showroom entry gate between 03:00 AM and 04:15 AM.',
+    department_id: 'dept_surveillance',
+    department_name: 'Security Operations & Surveillance',
+    category: 'Security Guard Sleeping',
+    priority: 'HIGH',
+    status: 'OPEN',
+    assigned_technician_id: null,
+    assigned_technician_name: 'Unassigned',
+    location_id: 'loc_004',
+    location_name: 'Cafe Shahbaz',
+    region_name: 'South',
+    sla_deadline: '2026-09-28T18:00:00.000Z',
+    sla_status: 'ON TRACK',
+    sla_remaining_hours: 5.2,
+    evidence_images: [],
+    created_by_user_id: 'admin-surveillance',
+    created_by_name: 'Surveillance Super Admin',
+    created_at: '2026-09-27T13:00:00.000Z',
+    updated_at: '2026-09-27T13:00:00.000Z',
+    comments: []
+  },
+  {
+    id: 'ticket_531660',
+    ticket_number: 'CMP-2026-531660',
+    subject: 'Fabric Stock Handling Discrepancy',
+    description: 'Unrecorded movement of premium stock rolls from loading dock directly to retail floor without audit log.',
+    department_id: 'dept_surveillance',
+    department_name: 'Security Operations & Surveillance',
+    category: 'Stock Mismanagement',
+    priority: 'MEDIUM',
+    status: 'NEW',
+    assigned_technician_id: null,
+    assigned_technician_name: 'Unassigned',
+    location_id: 'loc_005',
+    location_name: 'Fabric Store Burewala',
+    region_name: 'North',
+    sla_deadline: '2026-09-29T10:00:00.000Z',
+    sla_status: 'ON TRACK',
+    sla_remaining_hours: 22.0,
+    evidence_images: [],
+    created_by_user_id: 'admin-surveillance',
+    created_by_name: 'Surveillance Super Admin',
+    created_at: '2026-09-27T14:00:00.000Z',
+    updated_at: '2026-09-27T14:00:00.000Z',
     comments: []
   }
 ];
@@ -1089,7 +1190,7 @@ if (usrs && usrs.length > 0) {
           t => t.status === 'IN PROGRESS'
         ).length,
         closed_count: assigned.filter(
-          t => t.status === 'CLOSED' || t.status === 'RESOLVED'
+          t => t.status === 'RESOLVED'
         ).length,
         delayed_count: assigned.filter(
           t => t.sla_status === 'BREACHED'
@@ -1270,6 +1371,7 @@ if (usrs && usrs.length > 0) {
     const newTicket: Ticket = {
       id,
       ticket_number: ticketNumber,
+      record_type: data.record_type || 'OBSERVATION',
       subject: data.subject || 'Observation Incident',
       description: data.description || '',
       department_id: data.department_id || 'dept_surveillance',
@@ -1354,10 +1456,6 @@ if (usrs && usrs.length > 0) {
 
     if (updates.status === 'RESOLVED' && !oldTicket.resolved_at) {
       updatedTicket.resolved_at = new Date().toISOString();
-      updatedTicket.sla_status = 'COMPLETED';
-    }
-    if (updates.status === 'CLOSED' && !oldTicket.closed_at) {
-      updatedTicket.closed_at = new Date().toISOString();
       updatedTicket.sla_status = 'COMPLETED';
     }
 
@@ -1572,6 +1670,420 @@ if (usrs && usrs.length > 0) {
       }
       return 'No tabular records available for CSV serialization';
     }
+  }
+
+  // --- Database Import & Restore ---
+  public importData(
+    target: string,
+    payload: any,
+    mode: 'merge' | 'replace' = 'merge',
+    adminName = 'Surveillance Super Admin'
+  ): {
+    success: boolean;
+    target: string;
+    count: number;
+    created: number;
+    updated: number;
+    message: string;
+  } {
+    let parsedPayload = payload;
+    if (typeof payload === 'string') {
+      try {
+        parsedPayload = JSON.parse(payload);
+      } catch (err: any) {
+        throw new Error(`Invalid JSON format: ${err.message}`);
+      }
+    }
+
+    let rawItems: any[] = [];
+    let detectedTarget = (target || 'auto').toLowerCase();
+
+    if (parsedPayload && typeof parsedPayload === 'object' && !Array.isArray(parsedPayload)) {
+      if (parsedPayload.users || parsedPayload.locations || parsedPayload.tickets) {
+        detectedTarget = 'all';
+      } else if (Array.isArray(parsedPayload.data)) {
+        rawItems = parsedPayload.data;
+      } else if (Array.isArray(parsedPayload.records)) {
+        rawItems = parsedPayload.records;
+      } else if (Array.isArray(parsedPayload.items)) {
+        rawItems = parsedPayload.items;
+      }
+    } else if (Array.isArray(parsedPayload)) {
+      rawItems = parsedPayload;
+    }
+
+    let createdCount = 0;
+    let updatedCount = 0;
+
+    if (detectedTarget === 'all' || (parsedPayload && (parsedPayload.users || parsedPayload.locations || parsedPayload.tickets))) {
+      if (parsedPayload.users && Array.isArray(parsedPayload.users)) {
+        const uRes = this.importUsers(parsedPayload.users, mode);
+        createdCount += uRes.created;
+        updatedCount += uRes.updated;
+      }
+      if (parsedPayload.locations && Array.isArray(parsedPayload.locations)) {
+        const lRes = this.importLocations(parsedPayload.locations, mode);
+        createdCount += lRes.created;
+        updatedCount += lRes.updated;
+      }
+      if (parsedPayload.tickets && Array.isArray(parsedPayload.tickets)) {
+        const tRes = this.importTickets(parsedPayload.tickets, mode);
+        createdCount += tRes.created;
+        updatedCount += tRes.updated;
+      }
+      if (parsedPayload.departments && Array.isArray(parsedPayload.departments)) {
+        this.departments = parsedPayload.departments;
+      }
+      if (parsedPayload.regions && Array.isArray(parsedPayload.regions)) {
+        this.regions = parsedPayload.regions;
+      }
+      if (parsedPayload.auditLogs && Array.isArray(parsedPayload.auditLogs)) {
+        this.auditLogs = parsedPayload.auditLogs;
+      }
+
+      this.addAuditLog({
+        id: `id-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+        timestamp: new Date().toISOString(),
+        scope_category: 'System & Config',
+        administrator: adminName,
+        user_id: 'admin-surveillance',
+        user_role: 'SUPER_ADMIN',
+        setting_changed: 'Full JSON Database Import',
+        target_entity: 'Complete System Backup',
+        action_code: 'DATABASE_IMPORTED',
+        action_narrative: `Imported full database snapshot (${createdCount} created, ${updatedCount} updated)`,
+        previous_value: '—',
+        new_value: `${createdCount + updatedCount} records imported`,
+        ip_session: '127.0.0.1 (Authenticated Session)',
+        raw_json: { target: 'all', createdCount, updatedCount }
+      });
+
+      return {
+        success: true,
+        target: 'all',
+        count: createdCount + updatedCount,
+        created: createdCount,
+        updated: updatedCount,
+        message: `Successfully imported complete JSON database snapshot (${createdCount} created, ${updatedCount} updated).`
+      };
+    }
+
+    if (detectedTarget === 'users' || detectedTarget.includes('user')) {
+      const uRes = this.importUsers(rawItems, mode);
+      this.addAuditLog({
+        id: `id-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+        timestamp: new Date().toISOString(),
+        scope_category: 'User Governance',
+        administrator: adminName,
+        user_id: 'admin-surveillance',
+        user_role: 'SUPER_ADMIN',
+        setting_changed: 'Users JSON Upload',
+        target_entity: 'User Directory',
+        action_code: 'USERS_IMPORTED',
+        action_narrative: `Imported ${uRes.created + uRes.updated} users from JSON file (${uRes.created} new, ${uRes.updated} updated)`,
+        previous_value: `${this.users.length} users`,
+        new_value: `${this.users.length} users`,
+        ip_session: '127.0.0.1 (Authenticated Session)',
+        raw_json: { target: 'users', ...uRes }
+      });
+
+      return {
+        success: true,
+        target: 'users',
+        count: uRes.created + uRes.updated,
+        created: uRes.created,
+        updated: uRes.updated,
+        message: `Successfully imported ${uRes.created + uRes.updated} user accounts (${uRes.created} created, ${uRes.updated} updated).`
+      };
+    }
+
+    if (detectedTarget === 'locations' || detectedTarget.includes('location') || detectedTarget.includes('site')) {
+      const lRes = this.importLocations(rawItems, mode);
+      this.addAuditLog({
+        id: `id-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+        timestamp: new Date().toISOString(),
+        scope_category: 'System & Config',
+        administrator: adminName,
+        user_id: 'admin-surveillance',
+        user_role: 'SUPER_ADMIN',
+        setting_changed: 'Locations JSON Upload',
+        target_entity: 'Branch Directory',
+        action_code: 'LOCATIONS_IMPORTED',
+        action_narrative: `Imported ${lRes.created + lRes.updated} locations from JSON file (${lRes.created} new, ${lRes.updated} updated)`,
+        previous_value: `${this.locations.length} locations`,
+        new_value: `${this.locations.length} locations`,
+        ip_session: '127.0.0.1 (Authenticated Session)',
+        raw_json: { target: 'locations', ...lRes }
+      });
+
+      return {
+        success: true,
+        target: 'locations',
+        count: lRes.created + lRes.updated,
+        created: lRes.created,
+        updated: lRes.updated,
+        message: `Successfully imported ${lRes.created + lRes.updated} location records (${lRes.created} created, ${lRes.updated} updated).`
+      };
+    }
+
+    if (detectedTarget === 'tickets' || detectedTarget.includes('ticket') || detectedTarget.includes('incident') || detectedTarget.includes('observation')) {
+      const tRes = this.importTickets(rawItems, mode);
+      this.addAuditLog({
+        id: `id-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+        timestamp: new Date().toISOString(),
+        scope_category: 'Ticket Ops',
+        administrator: adminName,
+        user_id: 'admin-surveillance',
+        user_role: 'SUPER_ADMIN',
+        setting_changed: 'Tickets JSON Upload',
+        target_entity: 'Incident Tickets',
+        action_code: 'TICKETS_IMPORTED',
+        action_narrative: `Imported ${tRes.created + tRes.updated} tickets from JSON file (${tRes.created} new, ${tRes.updated} updated)`,
+        previous_value: `${this.tickets.length} tickets`,
+        new_value: `${this.tickets.length} tickets`,
+        ip_session: '127.0.0.1 (Authenticated Session)',
+        raw_json: { target: 'tickets', ...tRes }
+      });
+
+      return {
+        success: true,
+        target: 'tickets',
+        count: tRes.created + tRes.updated,
+        created: tRes.created,
+        updated: tRes.updated,
+        message: `Successfully imported ${tRes.created + tRes.updated} incident tickets (${tRes.created} created, ${tRes.updated} updated).`
+      };
+    }
+
+    if (detectedTarget === 'audit' || detectedTarget.includes('audit')) {
+      if (mode === 'replace') {
+        this.auditLogs = [];
+      }
+      let c = 0;
+      for (const item of rawItems) {
+        if (item && item.id) {
+          const exists = this.auditLogs.some(a => a.id === item.id);
+          if (!exists) {
+            this.addAuditLog(item);
+            c++;
+          }
+        }
+      }
+      return {
+        success: true,
+        target: 'audit',
+        count: c,
+        created: c,
+        updated: 0,
+        message: `Successfully imported ${c} audit trail records.`
+      };
+    }
+
+    // Default fallback: check contents of rawItems to guess
+    if (rawItems.length > 0) {
+      const sample = rawItems[0];
+      if (sample.email || sample.role) {
+        return this.importData('users', payload, mode, adminName);
+      } else if (sample.branch_code || sample.camera_zones) {
+        return this.importData('locations', payload, mode, adminName);
+      } else if (sample.ticket_number || sample.subject || sample.priority) {
+        return this.importData('tickets', payload, mode, adminName);
+      }
+    }
+
+    throw new Error(`Unable to determine target module for JSON data. Please select target explicitly ('users', 'locations', 'tickets', or 'all').`);
+  }
+
+  private importUsers(rawUsers: any[], mode: 'merge' | 'replace'): { created: number; updated: number } {
+    if (mode === 'replace') {
+      this.users = [];
+      this.runQuery("DELETE FROM users");
+    }
+
+    let created = 0;
+    let updated = 0;
+
+    for (const raw of rawUsers) {
+      if (!raw || (!raw.id && !raw.email && !raw.name)) continue;
+
+      const id = String(raw.id || `usr_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`);
+      const email = String(raw.email || `user_${id}@ideas.com.pk`).toLowerCase().trim();
+      const rawPassword = String(raw.password || raw.password_hash || '@dm!n#+390++--');
+
+      const passwordHash =
+        rawPassword.startsWith('$2a$') || rawPassword.startsWith('$2b$') || rawPassword.startsWith('$2y$')
+          ? rawPassword
+          : bcrypt.hashSync(rawPassword, 12);
+
+      const userObj: User = {
+        id,
+        name: String(raw.name || 'OpsDesk User'),
+        email,
+        password_hash: passwordHash,
+        department_id: String(raw.department_id || 'dept_surveillance'),
+        department_name: String(raw.department_name || 'Security Operations & Surveillance'),
+        role: raw.role || 'TECHNICIAN',
+        status: raw.status || 'Active',
+        avatar_initials: raw.avatar_initials || (raw.name ? raw.name.substring(0, 2).toUpperCase() : 'US'),
+        workload_status: raw.workload_status || 'Idle',
+        granular_rights: Array.isArray(raw.granular_rights)
+          ? raw.granular_rights
+          : (typeof raw.granular_rights === 'string' ? JSON.parse(raw.granular_rights) : ['Tickets', 'Resolve']),
+        last_login: raw.last_login || undefined,
+        assigned_count: Number(raw.assigned_count || 0),
+        pending_count: Number(raw.pending_count || 0),
+        in_process_count: Number(raw.in_process_count || 0),
+        closed_count: Number(raw.closed_count || 0),
+        delayed_count: Number(raw.delayed_count || 0),
+        compliance_percent: Number(raw.compliance_percent || 100)
+      };
+
+      const existingIdx = this.users.findIndex(u => u.id === id || u.email === email);
+      if (existingIdx >= 0) {
+        this.users[existingIdx] = { ...this.users[existingIdx], ...userObj };
+        updated++;
+      } else {
+        this.users.push(userObj);
+        created++;
+      }
+
+      this.runQuery(
+        "INSERT INTO users (id, name, email, password_hash, department_id, department_name, role, status, avatar_initials, workload_status, granular_rights) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE name=VALUES(name), email=VALUES(email), role=VALUES(role), status=VALUES(status)",
+        [
+          userObj.id, userObj.name, userObj.email, userObj.password_hash,
+          userObj.department_id, userObj.department_name, userObj.role,
+          userObj.status, userObj.avatar_initials, userObj.workload_status,
+          JSON.stringify(userObj.granular_rights)
+        ]
+      );
+    }
+
+    return { created, updated };
+  }
+
+  private importLocations(rawLocations: any[], mode: 'merge' | 'replace'): { created: number; updated: number } {
+    if (mode === 'replace') {
+      this.locations = [];
+      this.runQuery("DELETE FROM locations");
+    }
+
+    let created = 0;
+    let updated = 0;
+
+    for (const raw of rawLocations) {
+      if (!raw || (!raw.id && !raw.branch_code && !raw.name)) continue;
+
+      const id = String(raw.id || `loc_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`);
+      const branchCode = String(raw.branch_code || `BR${Math.floor(1000 + Math.random() * 9000)}`);
+
+      const locObj: Location = {
+        id,
+        branch_code: branchCode,
+        name: String(raw.name || 'Branch Location'),
+        region_id: String(raw.region_id || 'reg_central'),
+        region_name: String(raw.region_name || 'Central'),
+        physical_address: String(raw.physical_address || 'Commercial Market Area'),
+        contact_person: String(raw.contact_person || 'Branch Manager'),
+        phone: String(raw.phone || '+92 300 0000000'),
+        notification_email: String(raw.notification_email || `branch.${branchCode.toLowerCase()}@ideas.com.pk`),
+        camera_zones: Number(raw.camera_zones || 1),
+        areas_details: String(raw.areas_details || 'Main Floor'),
+        status: raw.status || 'Active',
+        tickets_count: Number(raw.tickets_count || 0)
+      };
+
+      const existingIdx = this.locations.findIndex(l => l.id === id || l.branch_code === branchCode);
+      if (existingIdx >= 0) {
+        this.locations[existingIdx] = { ...this.locations[existingIdx], ...locObj };
+        updated++;
+      } else {
+        this.locations.push(locObj);
+        created++;
+      }
+
+      this.runQuery(
+        "INSERT INTO locations (id, branch_code, name, region_id, region_name, physical_address, contact_person, phone, notification_email, camera_zones, areas_details, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE name=VALUES(name), physical_address=VALUES(physical_address), status=VALUES(status)",
+        [
+          locObj.id, locObj.branch_code, locObj.name, locObj.region_id,
+          locObj.region_name, locObj.physical_address, locObj.contact_person,
+          locObj.phone, locObj.notification_email, locObj.camera_zones,
+          locObj.areas_details, locObj.status
+        ]
+      );
+    }
+
+    return { created, updated };
+  }
+
+  private importTickets(rawTickets: any[], mode: 'merge' | 'replace'): { created: number; updated: number } {
+    if (mode === 'replace') {
+      this.tickets = [];
+      this.runQuery("DELETE FROM tickets");
+    }
+
+    let created = 0;
+    let updated = 0;
+
+    for (const raw of rawTickets) {
+      if (!raw || (!raw.id && !raw.ticket_number && !raw.subject)) continue;
+
+      const id = String(raw.id || `tix_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`);
+      const ticketNumber = String(raw.ticket_number || `TICK-${Math.floor(10000 + Math.random() * 90000)}`);
+
+      const tixObj: Ticket = {
+        id,
+        ticket_number: ticketNumber,
+        subject: String(raw.subject || 'Surveillance Alert / Incident'),
+        description: String(raw.description || 'System generated or imported observation record.'),
+        department_id: String(raw.department_id || 'dept_surveillance'),
+        department_name: String(raw.department_name || 'Security Operations & Surveillance'),
+        category: String(raw.category || 'Surveillance Hardware'),
+        priority: raw.priority || 'MEDIUM',
+        status: raw.status || 'NEW',
+        assigned_technician_id: raw.assigned_technician_id || null,
+        assigned_technician_name: String(raw.assigned_technician_name || 'Unassigned'),
+        location_id: String(raw.location_id || 'loc_001'),
+        location_name: String(raw.location_name || 'Agency Jaranwala'),
+        region_name: String(raw.region_name || 'Central'),
+        sla_deadline: raw.sla_deadline || new Date(Date.now() + 86400000).toISOString(),
+        sla_status: raw.sla_status || 'ON TRACK',
+        sla_remaining_hours: Number(raw.sla_remaining_hours || 24),
+        evidence_images: Array.isArray(raw.evidence_images)
+          ? raw.evidence_images
+          : (typeof raw.evidence_images === 'string' ? JSON.parse(raw.evidence_images) : []),
+        created_by_user_id: String(raw.created_by_user_id || 'admin-surveillance'),
+        created_by_name: String(raw.created_by_name || 'Surveillance Super Admin'),
+        created_at: raw.created_at || new Date().toISOString(),
+        updated_at: raw.updated_at || new Date().toISOString(),
+        resolved_at: raw.resolved_at || null,
+        closed_at: raw.closed_at || null,
+        comments: Array.isArray(raw.comments) ? raw.comments : []
+      };
+
+      const existingIdx = this.tickets.findIndex(t => t.id === id || t.ticket_number === ticketNumber);
+      if (existingIdx >= 0) {
+        this.tickets[existingIdx] = { ...this.tickets[existingIdx], ...tixObj };
+        updated++;
+      } else {
+        this.tickets.push(tixObj);
+        created++;
+      }
+
+      this.runQuery(
+        "INSERT INTO tickets (id, ticket_number, subject, description, department_id, department_name, category, priority, status, assigned_technician_id, assigned_technician_name, location_id, location_name, region_name, sla_deadline, sla_status, sla_remaining_hours, evidence_images, created_by_user_id, created_by_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE subject=VALUES(subject), priority=VALUES(priority), status=VALUES(status), assigned_technician_id=VALUES(assigned_technician_id)",
+        [
+          tixObj.id, tixObj.ticket_number, tixObj.subject, tixObj.description,
+          tixObj.department_id, tixObj.department_name, tixObj.category,
+          tixObj.priority, tixObj.status, tixObj.assigned_technician_id,
+          tixObj.assigned_technician_name, tixObj.location_id, tixObj.location_name,
+          tixObj.region_name, tixObj.sla_deadline ? new Date(tixObj.sla_deadline) : null,
+          tixObj.sla_status, tixObj.sla_remaining_hours, JSON.stringify(tixObj.evidence_images),
+          tixObj.created_by_user_id, tixObj.created_by_name
+        ]
+      );
+    }
+
+    return { created, updated };
   }
 }
 

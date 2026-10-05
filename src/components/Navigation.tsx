@@ -54,6 +54,12 @@ export const Navigation: React.FC<NavigationProps> = ({
   const isSuperAdmin = currentUser.role === 'SUPER_ADMIN';
   const isTechnician = currentUser.role === 'TECHNICIAN';
 
+  const isSlaEnabled =
+    slaEngineEnabled !== false &&
+    (slaEngineEnabled as any) !== 'false' &&
+    (slaEngineEnabled as any) !== 0 &&
+    (slaEngineEnabled as any) !== '0';
+
   return (
     <nav className="bg-[#09151F] text-slate-300 border-b border-slate-800 shadow-md">
       <div className="max-w-[1720px] mx-auto px-4 lg:px-6">
@@ -66,7 +72,7 @@ export const Navigation: React.FC<NavigationProps> = ({
             if (tab.minRole === 'SUPER_ADMIN' && !isSuperAdmin) {
               return null;
             }
-            if (tab.id === 'sla-engine' && !slaEngineEnabled) {
+            if (tab.id === 'sla-engine' && !isSlaEnabled) {
               return null;
             }
 

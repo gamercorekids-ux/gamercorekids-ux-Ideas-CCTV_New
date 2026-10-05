@@ -59,8 +59,9 @@ export const TechnicianTicketsView: React.FC<TechnicianTicketsViewProps> = ({
   const [dateRangeFilter, setDateRangeFilter] = useState('ALL');
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(true);
 
-  // Filter to tickets for selected technician or current user
+  // Filter to tickets for selected technician or technical tickets
   const myTickets = tickets.filter(t => {
+    if (t.record_type === 'TECHNICAL') return true;
     if (currentUser.role === 'TECHNICIAN') {
       const isAssigned = t.assigned_technician_id === currentUser.id;
       const isCreatedByUserId = t.created_by_user_id === currentUser.id;
@@ -82,14 +83,12 @@ export const TechnicianTicketsView: React.FC<TechnicianTicketsViewProps> = ({
   const openCount = myTickets.filter(t => t.status === 'OPEN').length;
   const inProgressCount = myTickets.filter(t => t.status === 'IN PROGRESS').length;
   const resolvedCount = myTickets.filter(t => t.status === 'RESOLVED').length;
-  const closedCount = myTickets.filter(t => t.status === 'CLOSED').length;
 
   const filteredTickets = myTickets.filter(t => {
     if (selectedFilter === 'new' && t.status !== 'NEW') return false;
     if (selectedFilter === 'open' && t.status !== 'OPEN') return false;
     if (selectedFilter === 'in_progress' && t.status !== 'IN PROGRESS') return false;
     if (selectedFilter === 'resolved' && t.status !== 'RESOLVED') return false;
-    if (selectedFilter === 'closed' && t.status !== 'CLOSED') return false;
 
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
@@ -263,7 +262,7 @@ export const TechnicianTicketsView: React.FC<TechnicianTicketsViewProps> = ({
             <div className="text-[11px] text-slate-500 mb-3">Verified functional, closed & completed operational logs</div>
             <div className="flex items-baseline justify-between">
               <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-extrabold text-slate-900 tabular-nums">{resolvedCount + closedCount}</span>
+                <span className="text-3xl font-extrabold text-slate-900 tabular-nums">{resolvedCount}</span>
                 <span className="text-xs font-semibold text-emerald-600">0% resolution rate</span>
               </div>
               <span className="text-xs font-semibold text-slate-500 hover:text-emerald-700 flex items-center gap-1">
@@ -336,17 +335,6 @@ export const TechnicianTicketsView: React.FC<TechnicianTicketsViewProps> = ({
             >
               ● Resolved <span className="ml-1 opacity-80">{resolvedCount}</span>
             </button>
-
-            <button
-              onClick={() => setSelectedFilter('closed')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors ${
-                selectedFilter === 'closed'
-                  ? 'bg-slate-700 text-white'
-                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-              }`}
-            >
-              Closed <span className="ml-1 opacity-80">{closedCount}</span>
-            </button>
           </div>
 
           <div className="flex items-center gap-2 flex-1 max-w-lg">
@@ -396,15 +384,8 @@ export const TechnicianTicketsView: React.FC<TechnicianTicketsViewProps> = ({
                 <option value="NEW">NEW</option>
                 <option value="OPEN">OPEN</option>
                 <option value="ASSIGNED">ASSIGNED</option>
-                <option value="ACKNOWLEDGED">ACKNOWLEDGED</option>
-                <option value="UNDER INVESTIGATION">UNDER INVESTIGATION</option>
                 <option value="IN PROGRESS">IN PROGRESS</option>
-                <option value="PENDING">PENDING</option>
                 <option value="RESOLVED">RESOLVED</option>
-                <option value="VERIFICATION">VERIFICATION</option>
-                <option value="CLOSED">CLOSED</option>
-                <option value="REOPENED">REOPENED</option>
-                <option value="ARCHIVED">ARCHIVED</option>
               </select>
             </div>
 
@@ -519,12 +500,12 @@ export const TechnicianTicketsView: React.FC<TechnicianTicketsViewProps> = ({
                 </th>
                 <th className="py-3.5 px-4">TICKET #</th>
                 <th className="py-3.5 px-4">CREATED DATE ↓</th>
+                <th className="py-3.5 px-4">LOCATION / SITE</th>
                 <th className="py-3.5 px-4">SUBJECT / TITLE</th>
                 <th className="py-3.5 px-4">STATUS</th>
                 <th className="py-3.5 px-4">PRIORITY</th>
                 {slaEngineEnabled && <th className="py-3.5 px-4">SLA STATUS</th>}
                 <th className="py-3.5 px-4">ASSIGNED TECHNICIAN</th>
-                <th className="py-3.5 px-4">LOCATION / SITE</th>
                 <th className="py-3.5 px-4 text-right">ACTIONS</th>
               </tr>
             </thead>
@@ -550,7 +531,10 @@ export const TechnicianTicketsView: React.FC<TechnicianTicketsViewProps> = ({
                     <td className="py-3.5 px-4 text-slate-600">
                       {new Date(ticket.created_at).toLocaleString()}
                     </td>
-                    <td className="py-3.5 px-4 font-semibold text-slate-900">
+                    <td className="py-3.5 px-4 text-slate-700 font-medium">
+                      {ticket.location_name}
+                    </td>
+                    <td className="py-3.5 px-4 font-bold text-slate-900">
                       {ticket.subject}
                     </td>
                     <td className="py-3.5 px-4">
@@ -572,9 +556,6 @@ export const TechnicianTicketsView: React.FC<TechnicianTicketsViewProps> = ({
                       <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-700">
                         {ticket.assigned_technician_name}
                       </span>
-                    </td>
-                    <td className="py-3.5 px-4 text-slate-700">
-                      {ticket.location_name}
                     </td>
                     <td className="py-3.5 px-4 text-right">
                       <button

@@ -28,7 +28,7 @@ export const TechnicianReportsView: React.FC<TechnicianReportsViewProps> = ({
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
   const activeTechnicians = users.length;
-  const totalWorkload = tickets.filter(t => t.status !== 'CLOSED' && t.status !== 'RESOLVED' && t.assigned_technician_id).length;
+  const totalWorkload = tickets.filter(t => t.status !== 'RESOLVED' && t.assigned_technician_id).length;
   const activeBreaches = tickets.filter(t => t.sla_status === 'BREACHED').length;
 
   const filteredUsers = users.filter(u => {
@@ -122,11 +122,9 @@ export const TechnicianReportsView: React.FC<TechnicianReportsViewProps> = ({
               <tr>
                 <th className="py-3.5 px-4">TECHNICIAN</th>
                 <th className="py-3.5 px-4 text-center">ASSIGNED</th>
-                <th className="py-3.5 px-4 text-center">OPEN</th>
+                <th className="py-3.5 px-4 text-center">NEW / OPEN</th>
                 <th className="py-3.5 px-4 text-center">IN PROGRESS</th>
-                <th className="py-3.5 px-4 text-center">PENDING</th>
                 <th className="py-3.5 px-4 text-center">RESOLVED</th>
-                <th className="py-3.5 px-4 text-center">CLOSED</th>
                 <th className="py-3.5 px-4 text-center">SLA BREACHED</th>
                 <th className="py-3.5 px-4 text-center">COMPLIANCE</th>
                 <th className="py-3.5 px-4 text-right">ACTIONS</th>
@@ -138,7 +136,6 @@ export const TechnicianReportsView: React.FC<TechnicianReportsViewProps> = ({
                 const openCount = assigned.filter(t => t.status === 'OPEN' || t.status === 'NEW').length;
                 const inProgCount = assigned.filter(t => t.status === 'IN PROGRESS').length;
                 const resolvedCount = assigned.filter(t => t.status === 'RESOLVED').length;
-                const closedCount = assigned.filter(t => t.status === 'CLOSED').length;
                 const breachedCount = assigned.filter(t => t.sla_status === 'BREACHED').length;
 
                 return (
@@ -175,23 +172,11 @@ export const TechnicianReportsView: React.FC<TechnicianReportsViewProps> = ({
                       </span>
                     </td>
 
-                    {/* Pending */}
-                    <td className="py-3.5 px-4 text-center">
-                      <span className="inline-block w-6 py-0.5 rounded text-[11px] font-mono font-bold bg-purple-50 text-purple-700">
-                        0
-                      </span>
-                    </td>
-
                     {/* Resolved */}
                     <td className="py-3.5 px-4 text-center">
                       <span className="inline-block w-6 py-0.5 rounded text-[11px] font-mono font-bold bg-emerald-50 text-emerald-700">
                         {resolvedCount}
                       </span>
-                    </td>
-
-                    {/* Closed */}
-                    <td className="py-3.5 px-4 text-center font-mono text-slate-600">
-                      {closedCount}
                     </td>
 
                     {/* SLA Breached */}

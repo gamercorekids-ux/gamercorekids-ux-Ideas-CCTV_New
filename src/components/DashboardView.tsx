@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Activity,
   FileDown,
@@ -15,6 +15,8 @@ import {
   Filter
 } from 'lucide-react';
 import { Department, Ticket, User, Location, DbStatus } from '../types';
+import { DepartmentVolumeTrendsChart } from './DepartmentVolumeTrendsChart';
+import { getCategoryStyle } from '../constants/categories';
 
 interface DashboardViewProps {
   department: Department;
@@ -66,11 +68,30 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
   // Derived counts
   const totalObservations = tickets.length;
-  const activeTickets = tickets.filter(t => t.status !== 'CLOSED' && t.status !== 'RESOLVED').length;
-  const closedTickets = tickets.filter(t => t.status === 'CLOSED' || t.status === 'RESOLVED').length;
+  const activeTickets = tickets.filter(t => t.status !== 'RESOLVED').length;
+  const closedTickets = tickets.filter(t => t.status === 'RESOLVED').length;
   const openTickets = tickets.filter(t => t.status === 'OPEN' || t.status === 'NEW').length;
   const inProgressTickets = tickets.filter(t => t.status === 'IN PROGRESS').length;
   const delayedTickets = tickets.filter(t => t.sla_status === 'BREACHED').length;
+
+  // Group tickets dynamically by Issue Category for Live Telemetry chart
+  const categoryCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    tickets.forEach(t => {
+      const cat = (t.category || 'GENERAL').trim();
+      counts[cat] = (counts[cat] || 0) + 1;
+    });
+
+    const total = tickets.length || 1;
+    return Object.entries(counts)
+      .map(([name, count]) => ({
+        name,
+        count,
+        percentage: Math.round((count / total) * 100),
+        style: getCategoryStyle(name)
+      }))
+      .sort((a, b) => b.count - a.count);
+  }, [tickets]);
 
   const filteredTickets = tickets.filter(t => {
     if (!searchQuery) return true;
@@ -404,6 +425,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
       </div>
 
+      {/* 3.5 Department Daily Ticket Volume Trends Widget (Recharts) */}
+      <DepartmentVolumeTrendsChart tickets={tickets} />
+
       {/* 4. Executive Overview Grid & Advanced Analytics Row */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         {/* Left Column: Executive Overview Grid */}
@@ -523,30 +547,62 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 </span>
               </div>
 
-              <div className="h-32 flex items-center justify-center">
+              <div className="h-32 flex items-center justify-center my-1">
                 <div className="relative w-24 h-24">
                   <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
                     <circle cx="18" cy="18" r="14" fill="none" stroke="#f1f5f9" strokeWidth="6" />
-                    <circle
-                      cx="18"
-                      cy="18"
-                      r="14"
-                      fill="none"
-                      stroke="#0284c7"
-                      strokeWidth="6"
-                      strokeDasharray="88, 100"
-                    />
+                    {tickets.length > 0 && (() => {
+                      let currentOffset = 0;
+                      return categoryCounts.map(cat => {
+                        const segmentLen = (cat.count / tickets.length) * 87.964;
+                        const gapLen = 87.964 - segmentLen;
+                        const strokeOffset = -currentOffset;
+                        currentOffset += segmentLen;
+
+                        return (
+                          <circle
+                            key={cat.name}
+                            cx="18"
+                            cy="18"
+                            r="14"
+                            fill="none"
+                            stroke={cat.style.hex}
+                            strokeWidth="6"
+                            strokeDasharray={`${segmentLen} ${gapLen}`}
+                            strokeDashoffset={strokeOffset}
+                            className="transition-all duration-300"
+                          />
+                        );
+                      });
+                    })()}
                   </svg>
-                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                     <span className="text-xs font-bold text-slate-900">{tickets.length}</span>
                     <span className="text-[9px] text-slate-400">Total</span>
                   </div>
                 </div>
               </div>
 
-              <div className="flex items-center justify-center gap-2 text-[11px] font-semibold text-slate-700 border-t border-slate-100 pt-2">
-                <span className="w-2 h-2 rounded-full bg-sky-600"></span>
-                <span>GENERAL ({tickets.length})</span>
+              {/* Categorization Legend List */}
+              <div className="border-t border-slate-100 pt-2 space-y-1.5 max-h-28 overflow-y-auto no-scrollbar">
+                {categoryCounts.length === 0 ? (
+                  <div className="text-[11px] text-slate-400 text-center py-1">No ticket categories yet</div>
+                ) : (
+                  categoryCounts.map(cat => (
+                    <div key={cat.name} className="flex items-center justify-between text-[11px] font-semibold text-slate-700">
+                      <div className="flex items-center gap-1.5 truncate pr-2">
+                        <span
+                          className="w-2.5 h-2.5 rounded-full shrink-0"
+                          style={{ backgroundColor: cat.style.hex }}
+                        ></span>
+                        <span className="truncate">{cat.name}</span>
+                      </div>
+                      <span className="font-mono text-[10px] text-slate-500 whitespace-nowrap">
+                        {cat.count} ({cat.percentage}%)
+                      </span>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           </div>

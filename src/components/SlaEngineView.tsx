@@ -5,9 +5,16 @@ import { SlaRule } from '../types';
 interface SlaEngineViewProps {
   rules: SlaRule[];
   onUpdateRule: (id: string, updates: Partial<SlaRule>) => void;
+  slaEngineEnabled?: boolean;
+  onToggleSlaEngine?: (enabled: boolean) => void;
 }
 
-export const SlaEngineView: React.FC<SlaEngineViewProps> = ({ rules, onUpdateRule }) => {
+export const SlaEngineView: React.FC<SlaEngineViewProps> = ({
+  rules,
+  onUpdateRule,
+  slaEngineEnabled = true,
+  onToggleSlaEngine
+}) => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedRule, setSelectedRule] = useState<SlaRule | null>(null);
 
@@ -17,6 +24,7 @@ export const SlaEngineView: React.FC<SlaEngineViewProps> = ({ rules, onUpdateRul
   const [escalationHours, setEscalationHours] = useState(1);
 
   const handleEditClick = (rule: SlaRule) => {
+    if (!slaEngineEnabled) return;
     setSelectedRule(rule);
     setResponseMinutes(rule.response_sla_minutes);
     setResolutionHours(rule.resolution_sla_hours);
@@ -44,25 +52,57 @@ export const SlaEngineView: React.FC<SlaEngineViewProps> = ({ rules, onUpdateRul
 
   return (
     <div className="space-y-6 pb-12">
-      {/* 1. Header with Description and Configure Button (Matching Image 7) */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+      {/* 1. SLA Engine Toggle Card (Matching attached image.png) */}
+      <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-2xs flex items-center justify-between gap-4">
+        <div>
+          <div className="font-bold text-slate-900 text-sm md:text-base">
+            Configurable SLA Engine & Escalation Matrix
+          </div>
+          <div className="text-xs text-slate-500 mt-0.5">
+            Manage automated SLA response deadlines, resolution thresholds, and multi-tier escalation policies.
+          </div>
+        </div>
+        <label className="relative inline-flex items-center cursor-pointer shrink-0">
+          <input
+            type="checkbox"
+            checked={slaEngineEnabled}
+            onChange={e => onToggleSlaEngine?.(e.target.checked)}
+            className="sr-only peer"
+          />
+          <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+        </label>
+      </div>
+
+      {/* SLA Engine Disabled Banner */}
+      {!slaEngineEnabled && (
+        <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl flex items-center gap-3 text-amber-900 text-xs font-semibold">
+          <AlertCircle className="w-5 h-5 text-amber-600 shrink-0" />
+          <span>
+            SLA Engine is currently <strong>DISABLED</strong>. Automated SLA response deadlines, resolution timers, and escalation triggers are inactive across all ticket queues, and the "SLA Engine & Policies" tab is hidden from top navigation.
+          </span>
+        </div>
+      )}
+
+      {/* 2. Header with Description and Configure Button */}
+      <div className={`bg-white border border-slate-200 rounded-2xl p-5 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-4 ${!slaEngineEnabled ? 'opacity-50 pointer-events-none select-none' : ''}`}>
         <div className="flex items-start gap-3.5">
           <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 border border-amber-200">
             <ShieldCheck className="w-5 h-5" />
           </div>
           <div>
             <h2 className="text-xl font-bold tracking-tight text-slate-900">
-              Configurable SLA Engine & Escalation Matrix
+              Active Matrix Rules Configuration
             </h2>
             <p className="text-xs text-slate-500 mt-0.5">
-              Manage automated SLA response deadlines, resolution thresholds, and multi-tier escalation policies.
+              Multi-tier resolution SLAs, first response timers, and supervisory escalation triggers.
             </p>
           </div>
         </div>
 
         <button
           onClick={() => handleEditClick(rules[0])}
-          className="px-4 py-2.5 text-xs font-semibold rounded-lg bg-[#0F2942] hover:bg-[#163859] text-white transition-colors flex items-center gap-2 shadow-2xs shrink-0 self-start md:self-auto"
+          disabled={!slaEngineEnabled}
+          className="px-4 py-2.5 text-xs font-semibold rounded-lg bg-[#0F2942] hover:bg-[#163859] text-white transition-colors flex items-center gap-2 shadow-2xs shrink-0 self-start md:self-auto disabled:opacity-50 cursor-pointer"
         >
           <Sliders className="w-3.5 h-3.5 text-emerald-400" />
           <span>Configure / Edit Rules</span>
@@ -70,7 +110,7 @@ export const SlaEngineView: React.FC<SlaEngineViewProps> = ({ rules, onUpdateRul
       </div>
 
       {/* 2. Active SLA Matrix Rules Table (Matching Image 7) */}
-      <div className="bg-white border border-slate-200 rounded-2xl shadow-2xs overflow-hidden">
+      <div className={`bg-white border border-slate-200 rounded-2xl shadow-2xs overflow-hidden ${!slaEngineEnabled ? 'opacity-50 pointer-events-none select-none' : ''}`}>
         <div className="p-5 border-b border-slate-200">
           <h3 className="text-sm font-bold text-slate-900">Active SLA Matrix Rules</h3>
           <p className="text-xs text-slate-500 mt-0.5">

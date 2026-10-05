@@ -521,6 +521,28 @@ app.get('/api/database/export', (req: Request, res: Response) => {
   res.send(content);
 });
 
+// 9a. Database Import & JSON Upload
+app.post('/api/database/import', requireAuth, (req: Request, res: Response) => {
+  try {
+    const user = (req as any).authenticatedUser;
+    if (!user || user.role !== 'SUPER_ADMIN') {
+      return res.status(403).json({ error: 'Super Admin privileges required to upload or import database.' });
+    }
+
+    const { target = 'auto', payload, mode = 'merge' } = req.body || {};
+
+    if (!payload) {
+      return res.status(400).json({ error: 'Missing JSON database payload. Please select a valid .json file.' });
+    }
+
+    const result = db.importData(target, payload, mode, user.name || 'Super Admin');
+    return res.json(result);
+  } catch (err: any) {
+    console.error('[Database Import Error]:', err);
+    return res.status(400).json({ error: err.message || 'Failed to parse or import JSON database file.' });
+  }
+});
+
 // 9b. Download SQL Schema and Seed for Hostinger phpMyAdmin
 app.get('/api/database/download-schema', (req: Request, res: Response) => {
   const schemaPath = path.resolve(process.cwd(), 'database/schema.sql');
