@@ -6,8 +6,14 @@
     color: #1e293b;
     background-color: #f8fafc;
     margin: 0;
+    transition: background-color 0.2s ease, color 0.2s ease;
   }
   
+  html.dark body {
+    background-color: #07121e;
+    color: #f1f5f9;
+  }
+
   code, pre, .font-mono {
     font-family: 'JetBrains Mono', monospace;
   }

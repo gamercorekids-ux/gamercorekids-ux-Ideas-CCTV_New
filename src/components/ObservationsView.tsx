@@ -592,22 +592,22 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
                 filteredTickets.map(ticket => {
                   const isChecked = selectedTicketIds.includes(ticket.id);
 
-                  // Priority colors
+                  // Priority colors (Vibrant & High-Contrast)
                   const priorityStyles = {
-                    CRITICAL: 'bg-rose-50 text-rose-700 border-rose-200',
-                    HIGH: 'bg-amber-50 text-amber-700 border-amber-200',
-                    MEDIUM: 'bg-blue-50 text-blue-700 border-blue-200',
-                    LOW: 'bg-slate-50 text-slate-700 border-slate-200'
+                    CRITICAL: 'bg-gradient-to-r from-rose-600 to-red-600 text-white font-bold shadow-2xs border-0',
+                    HIGH: 'bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-bold shadow-2xs border-0',
+                    MEDIUM: 'bg-gradient-to-r from-sky-500 to-blue-600 text-white font-bold shadow-2xs border-0',
+                    LOW: 'bg-gradient-to-r from-teal-500 to-emerald-600 text-white font-bold shadow-2xs border-0'
                   }[ticket.priority];
 
-                  // Status colors
+                  // Status colors (Vibrant & Eye-Catching)
                   const statusStyles = {
-                    NEW: 'bg-blue-50 text-blue-700 border-blue-200',
-                    OPEN: 'bg-sky-50 text-sky-700 border-sky-200',
-                    ASSIGNED: 'bg-indigo-50 text-indigo-700 border-indigo-200',
-                    'IN PROGRESS': 'bg-amber-50 text-amber-700 border-amber-200',
-                    RESOLVED: 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                  }[ticket.status] || 'bg-slate-100 text-slate-700 border-slate-200';
+                    NEW: 'bg-indigo-600 text-white font-bold shadow-2xs border-0',
+                    OPEN: 'bg-sky-600 text-white font-bold shadow-2xs border-0',
+                    ASSIGNED: 'bg-blue-600 text-white font-bold shadow-2xs border-0',
+                    'IN PROGRESS': 'bg-purple-600 text-white font-bold shadow-2xs border-0',
+                    RESOLVED: 'bg-slate-900 text-emerald-400 font-bold shadow-2xs border border-emerald-500/40'
+                  }[ticket.status] || 'bg-slate-800 text-white font-bold';
 
                   return (
                     <tr

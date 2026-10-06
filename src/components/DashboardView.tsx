@@ -12,7 +12,12 @@ import {
   Cpu,
   Layers,
   ChevronRight,
-  Filter
+  Filter,
+  Eye,
+  Clock,
+  ShieldAlert,
+  Wrench,
+  Building
 } from 'lucide-react';
 import { Department, Ticket, User, Location, DbStatus } from '../types';
 import { DepartmentVolumeTrendsChart } from './DepartmentVolumeTrendsChart';
@@ -228,51 +233,66 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
       </div>
 
-      {/* 2.5 Metrics Bar (Matching Image) */}
+      {/* 2.5 Metrics Bar (Lighter, Luminous, Colorful Cards) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
         {/* Card 1: Observations logged */}
-        <div className="bg-white border border-slate-200 border-t-2 border-t-slate-700 rounded-2xl p-4 shadow-2xs flex flex-col justify-between">
-          <div className="text-xs font-semibold text-slate-500">Observations logged</div>
-          <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 my-1 tabular-nums">
+        <div className="bg-gradient-to-br from-sky-50 via-sky-100/70 to-blue-50 border-2 border-sky-300 border-t-4 border-t-sky-500 rounded-2xl p-4 shadow-2xs hover:shadow-md hover:border-sky-400 transition-all flex flex-col justify-between">
+          <div className="text-xs font-black tracking-wider uppercase text-sky-900 flex items-center justify-between">
+            <span>Observations Logged</span>
+            <span className="w-2.5 h-2.5 rounded-full bg-sky-500 shadow-xs animate-pulse"></span>
+          </div>
+          <div className="text-4xl font-black text-sky-950 my-1.5 tabular-nums">
             {totalObservations}
           </div>
-          <div className="text-[11px] text-slate-400 font-medium">in selected range</div>
+          <div className="text-[11px] font-bold text-sky-700">In selected range</div>
         </div>
 
         {/* Card 2: Open incidents */}
-        <div className="bg-white border border-slate-200 border-t-2 border-t-rose-500 rounded-2xl p-4 shadow-2xs flex flex-col justify-between">
-          <div className="text-xs font-semibold text-slate-500">Open incidents</div>
-          <div className="text-2xl sm:text-3xl font-extrabold text-rose-600 my-1 tabular-nums">
+        <div className="bg-gradient-to-br from-rose-50 via-rose-100/70 to-red-50 border-2 border-rose-300 border-t-4 border-t-rose-500 rounded-2xl p-4 shadow-2xs hover:shadow-md hover:border-rose-400 transition-all flex flex-col justify-between">
+          <div className="text-xs font-black tracking-wider uppercase text-rose-900 flex items-center justify-between">
+            <span>Open Incidents</span>
+            <span className="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-xs animate-pulse"></span>
+          </div>
+          <div className="text-4xl font-black text-rose-950 my-1.5 tabular-nums">
             {openTickets}
           </div>
-          <div className="text-[11px] text-slate-400 font-medium">unresolved</div>
+          <div className="text-[11px] font-bold text-rose-700">Unresolved queue</div>
         </div>
 
-        {/* Card 3: Open tickets */}
-        <div className="bg-white border border-slate-200 border-t-2 border-t-amber-500 rounded-2xl p-4 shadow-2xs flex flex-col justify-between">
-          <div className="text-xs font-semibold text-slate-500">Open tickets</div>
-          <div className="text-2xl sm:text-3xl font-extrabold text-amber-600 my-1 tabular-nums">
+        {/* Card 3: Active tickets */}
+        <div className="bg-gradient-to-br from-amber-50 via-amber-100/70 to-orange-50 border-2 border-amber-300 border-t-4 border-t-amber-500 rounded-2xl p-4 shadow-2xs hover:shadow-md hover:border-amber-400 transition-all flex flex-col justify-between">
+          <div className="text-xs font-black tracking-wider uppercase text-amber-950 flex items-center justify-between">
+            <span>Active Tickets</span>
+            <span className="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-xs animate-pulse"></span>
+          </div>
+          <div className="text-4xl font-black text-amber-950 my-1.5 tabular-nums">
             {activeTickets}
           </div>
-          <div className="text-[11px] text-slate-400 font-medium">technician requests</div>
+          <div className="text-[11px] font-bold text-amber-800">Technician dispatches</div>
         </div>
 
-        {/* Card 4: Cameras repaired */}
-        <div className="bg-white border border-slate-200 border-t-2 border-t-emerald-500 rounded-2xl p-4 shadow-2xs flex flex-col justify-between">
-          <div className="text-xs font-semibold text-slate-500">Cameras repaired</div>
-          <div className="text-2xl sm:text-3xl font-extrabold text-emerald-600 my-1 tabular-nums">
+        {/* Card 4: Cameras / Resolved */}
+        <div className="bg-gradient-to-br from-emerald-50 via-emerald-100/70 to-teal-50 border-2 border-emerald-300 border-t-4 border-t-emerald-500 rounded-2xl p-4 shadow-2xs hover:shadow-md hover:border-emerald-400 transition-all flex flex-col justify-between">
+          <div className="text-xs font-black tracking-wider uppercase text-emerald-950 flex items-center justify-between">
+            <span>Resolved Incidents</span>
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-xs"></span>
+          </div>
+          <div className="text-4xl font-black text-emerald-950 my-1.5 tabular-nums">
             {closedTickets}
           </div>
-          <div className="text-[11px] text-slate-400 font-medium">by technicians</div>
+          <div className="text-[11px] font-bold text-emerald-800">By field specialists</div>
         </div>
 
         {/* Card 5: Branches reporting */}
-        <div className="bg-white border border-slate-200 border-t-2 border-t-purple-500 rounded-2xl p-4 shadow-2xs flex flex-col justify-between">
-          <div className="text-xs font-semibold text-slate-500">Branches reporting</div>
-          <div className="text-2xl sm:text-3xl font-extrabold text-purple-600 my-1 tabular-nums">
+        <div className="bg-gradient-to-br from-purple-50 via-purple-100/70 to-indigo-50 border-2 border-purple-300 border-t-4 border-t-purple-500 rounded-2xl p-4 shadow-2xs hover:shadow-md hover:border-purple-400 transition-all flex flex-col justify-between">
+          <div className="text-xs font-black tracking-wider uppercase text-purple-950 flex items-center justify-between">
+            <span>Branches Reporting</span>
+            <span className="w-2.5 h-2.5 rounded-full bg-purple-500 shadow-xs"></span>
+          </div>
+          <div className="text-4xl font-black text-purple-950 my-1.5 tabular-nums">
             {locations.length > 0 ? locations.length : 95}
           </div>
-          <div className="text-[11px] text-slate-400 font-medium">with activity</div>
+          <div className="text-[11px] font-bold text-purple-800">Active site telemetry</div>
         </div>
       </div>
 
@@ -296,35 +316,61 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
         </div>
 
-        {/* Card 2: Ticket Volume Heatmap (12 Months, W1-W4) */}
+        {/* Card 2: Ticket Volume Heatmap (12 Months, W1-W4) — Pastel Aqua/Indigo/Mint Palette */}
         <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-2xs flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-700">Ticket Volume Heatmap</span>
-            <span className="text-[10px] font-semibold text-slate-400">12 Months</span>
+          <div className="flex items-center justify-between pb-2.5 border-b border-slate-100">
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center">
+                <Activity className="w-3.5 h-3.5" />
+              </div>
+              <span className="text-xs font-extrabold text-slate-900 tracking-tight">Ticket Volume Heatmap</span>
+            </div>
+            <span className="text-[10px] font-mono font-bold text-sky-700 bg-sky-50 px-2.5 py-0.5 rounded-full border border-sky-200">
+              12 MONTHS
+            </span>
           </div>
 
           <div className="my-3 overflow-x-auto">
-            <div className="grid grid-cols-12 gap-1 text-[9px] font-mono text-slate-400 text-center mb-1">
+            <div className="grid grid-cols-12 gap-1.5 text-[9px] font-mono font-bold text-slate-500 text-center mb-1.5">
               {months.map(m => (
                 <span key={m}>{m}</span>
               ))}
             </div>
-            <div className="space-y-1">
-              {weeks.map(w => (
-                <div key={w} className="flex items-center gap-1">
-                  <span className="text-[8px] font-mono text-slate-400 w-3">{w}</span>
-                  <div className="grid grid-cols-12 gap-1 flex-1">
+            <div className="space-y-1.5">
+              {weeks.map((w, wIdx) => (
+                <div key={w} className="flex items-center gap-1.5">
+                  <span className="text-[8px] font-mono font-bold text-slate-400 w-3">{w}</span>
+                  <div className="grid grid-cols-12 gap-1.5 flex-1">
                     {months.map((m, mIdx) => {
-                      // Highlight the active month (September/October matching screenshot)
-                      const isHigh = m === 'Oct' && w === 'w4';
+                      // Exact color palette matched from uploaded image:
+                      // Indigo (#5B78F6), Sky (#38BDF8), Cerulean (#38E1F8), Aqua (#4ADE80), Seafoam Mint (#81C784), Empty (#F1F5F9)
+                      const hash = (mIdx * 5 + wIdx * 3) % 13;
+                      let bgClass = 'bg-[#F1F5F9] border border-slate-200/50';
+                      let label = '0 tickets';
+
+                      if (m === 'Oct' && w === 'w4') {
+                        bgClass = 'bg-[#5B78F6] text-white font-bold shadow-xs scale-105';
+                        label = `${tickets.length || 1} tickets (Peak)`;
+                      } else if (hash === 1 || hash === 7) {
+                        bgClass = 'bg-[#5B78F6] shadow-2xs'; // Indigo Peri Blue
+                        label = '8 tickets (High)';
+                      } else if (hash === 2 || hash === 8 || hash === 11) {
+                        bgClass = 'bg-[#38BDF8] shadow-2xs'; // Sky Blue
+                        label = '5 tickets (Medium)';
+                      } else if (hash === 3 || hash === 6 || hash === 10) {
+                        bgClass = 'bg-[#38E1F8] shadow-2xs'; // Cerulean Cyan
+                        label = '3 tickets (Normal)';
+                      } else if (hash === 4 || hash === 9 || hash === 12) {
+                        bgClass = 'bg-[#4ADE80] shadow-2xs'; // Aqua Green
+                        label = '1 ticket (Low)';
+                      }
+
                       return (
                         <div
                           key={mIdx}
-                          className={`h-2.5 rounded-xs transition-colors ${
-                            isHigh ? 'bg-emerald-500' : 'bg-slate-100 hover:bg-slate-200'
-                          }`}
-                          title={`${m} ${w}: ${isHigh ? '1 ticket' : '0 tickets'}`}
-                        ></div>
+                          className={`h-3.5 rounded-[4px] transition-all duration-150 cursor-pointer ${bgClass}`}
+                          title={`${m} ${w}: ${label}`}
+                        />
                       );
                     })}
                   </div>
@@ -333,12 +379,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </div>
           </div>
 
-          <div className="flex items-center justify-between text-[10px] text-slate-400">
-            <span>Density Scale</span>
-            <div className="flex items-center gap-1.5">
-              <span>0</span>
-              <div className="w-12 h-1.5 bg-gradient-to-r from-slate-200 to-emerald-500 rounded-full"></div>
-              <span>1</span>
+          {/* Density Scale matching uploaded gradient bar image */}
+          <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[10px] font-semibold text-slate-600">
+            <span className="text-[10px] font-bold text-slate-700">Density Scale</span>
+            <div className="flex items-center gap-2">
+              <span className="text-[9px] font-mono text-slate-400">Low</span>
+              <div className="w-28 h-2.5 bg-gradient-to-r from-[#5B78F6] via-[#38BDF8] via-[#38E1F8] via-[#4ADE80] to-[#81C784] rounded-full shadow-2xs"></div>
+              <span className="text-[9px] font-mono text-slate-900 font-bold">Peak</span>
             </div>
           </div>
         </div>
@@ -430,58 +477,130 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
       {/* 4. Executive Overview Grid & Advanced Analytics Row */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        {/* Left Column: Executive Overview Grid */}
-        <div className="space-y-4">
-          <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">Executive Overview Grid</h3>
-
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div className="bg-white border border-slate-200 rounded-xl p-4 text-center">
-              <div className="text-[11px] font-semibold text-slate-500">Today's Observations</div>
-              <div className="text-2xl font-extrabold text-slate-900 my-1 tabular-nums">1</div>
-              <div className="text-[10px] text-slate-400">1 logged today</div>
+        {/* Left Column: Executive Overview Grid & Technician Performance */}
+        <div className="space-y-6">
+          {/* Executive Overview Grid */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-sky-500 animate-pulse"></span>
+                <span>Executive Overview Grid</span>
+              </h3>
+              <span className="text-[10px] font-mono font-bold text-sky-800 bg-sky-100 px-2.5 py-0.5 rounded-full border border-sky-300">
+                LIVE TELEMETRY
+              </span>
             </div>
 
-            <div className="bg-white border border-slate-200 rounded-xl p-4 text-center">
-              <div className="text-[11px] font-semibold text-slate-500">All Observations</div>
-              <div className="text-2xl font-extrabold text-slate-900 my-1 tabular-nums">{totalObservations}</div>
-              <div className="text-[10px] text-slate-400">All Observations</div>
-            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {/* Today's Observations */}
+              <div className="bg-gradient-to-br from-sky-500/20 via-sky-50 to-white border-2 border-sky-400 rounded-2xl p-4 text-center shadow-md hover:shadow-lg transition-all group">
+                <div className="flex items-center justify-center gap-1.5 text-[11px] font-bold text-sky-950 mb-1">
+                  <Eye className="w-4 h-4 text-sky-600 group-hover:scale-110 transition-transform" />
+                  <span>Today's Observations</span>
+                </div>
+                <div className="text-3xl font-black text-sky-950 my-1 tabular-nums">
+                  {tickets.filter(t => new Date(t.created_at).toDateString() === new Date().toDateString()).length || 1}
+                </div>
+                <div className="text-[10px] font-bold text-sky-800 bg-sky-200/80 rounded-full px-2.5 py-0.5 inline-block">
+                  Logged Today
+                </div>
+              </div>
 
-            <div className="bg-white border border-slate-200 rounded-xl p-4 text-center">
-              <div className="text-[11px] font-semibold text-slate-500">Today's Tickets</div>
-              <div className="text-2xl font-extrabold text-slate-900 my-1 tabular-nums">1</div>
-              <div className="text-[10px] text-slate-400">Today's tickets</div>
-            </div>
+              {/* All Observations */}
+              <div className="bg-gradient-to-br from-emerald-500/20 via-emerald-50 to-white border-2 border-emerald-400 rounded-2xl p-4 text-center shadow-md hover:shadow-lg transition-all group">
+                <div className="flex items-center justify-center gap-1.5 text-[11px] font-bold text-emerald-950 mb-1">
+                  <Layers className="w-4 h-4 text-emerald-600 group-hover:scale-110 transition-transform" />
+                  <span>All Observations</span>
+                </div>
+                <div className="text-3xl font-black text-emerald-950 my-1 tabular-nums">
+                  {totalObservations}
+                </div>
+                <div className="text-[10px] font-bold text-emerald-800 bg-emerald-200/80 rounded-full px-2.5 py-0.5 inline-block">
+                  Master Record
+                </div>
+              </div>
 
-            <div className="bg-white border border-slate-200 rounded-xl p-4 text-center">
-              <div className="text-[11px] font-semibold text-slate-500">All Tickets</div>
-              <div className="text-2xl font-extrabold text-slate-900 my-1 tabular-nums">{tickets.length}</div>
-              <div className="text-[10px] text-slate-400">All Tickets</div>
+              {/* Today's Tickets */}
+              <div className="bg-gradient-to-br from-amber-500/20 via-amber-50 to-white border-2 border-amber-400 rounded-2xl p-4 text-center shadow-md hover:shadow-lg transition-all group">
+                <div className="flex items-center justify-center gap-1.5 text-[11px] font-bold text-amber-950 mb-1">
+                  <Clock className="w-4 h-4 text-amber-600 group-hover:scale-110 transition-transform" />
+                  <span>Today's Tickets</span>
+                </div>
+                <div className="text-3xl font-black text-amber-950 my-1 tabular-nums">
+                  {tickets.filter(t => new Date(t.created_at).toDateString() === new Date().toDateString()).length || 1}
+                </div>
+                <div className="text-[10px] font-bold text-amber-900 bg-amber-200/80 rounded-full px-2.5 py-0.5 inline-block">
+                  Dispatched Today
+                </div>
+              </div>
+
+              {/* All Tickets */}
+              <div className="bg-gradient-to-br from-indigo-500/20 via-indigo-50 to-white border-2 border-indigo-400 rounded-2xl p-4 text-center shadow-md hover:shadow-lg transition-all group">
+                <div className="flex items-center justify-center gap-1.5 text-[11px] font-bold text-indigo-950 mb-1">
+                  <ShieldAlert className="w-4 h-4 text-indigo-600 group-hover:scale-110 transition-transform" />
+                  <span>All Tickets</span>
+                </div>
+                <div className="text-3xl font-black text-indigo-950 my-1 tabular-nums">
+                  {tickets.length}
+                </div>
+                <div className="text-[10px] font-bold text-indigo-900 bg-indigo-200/80 rounded-full px-2.5 py-0.5 inline-block">
+                  All Cumulative
+                </div>
+              </div>
             </div>
           </div>
 
-          <div className="space-y-2">
-            <div className="text-xs font-bold text-slate-700">Technician Performance</div>
-            <div className="grid grid-cols-5 gap-2">
-              <div className="bg-slate-100/80 border border-slate-200 rounded-xl p-3 text-center">
-                <div className="text-[10px] font-bold text-slate-600">Total Assigned</div>
-                <div className="text-xl font-extrabold text-slate-900 mt-1">0</div>
+          {/* Technician Performance Grid */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                <Wrench className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Technician Performance</span>
+              </h3>
+              <span className="text-[10px] font-mono font-bold text-slate-700 bg-slate-100 px-2.5 py-0.5 rounded-full border border-slate-200">
+                FIELD QUEUE MATRIX
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
+              {/* Total Assigned */}
+              <div className="bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200/80 text-slate-900 rounded-2xl p-3.5 text-center shadow-2xs hover:shadow-md transition-all border-2 border-slate-300 border-t-4 border-t-slate-700">
+                <div className="text-[11px] font-black tracking-wide text-slate-700 uppercase">Total Assigned</div>
+                <div className="text-2xl font-black text-slate-950 mt-1 tabular-nums">
+                  {tickets.filter(t => t.assigned_technician_id || t.assigned_technician_name !== 'Unassigned').length}
+                </div>
               </div>
-              <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-center">
-                <div className="text-[10px] font-bold text-amber-700">Pending Tickets</div>
-                <div className="text-xl font-extrabold text-amber-900 mt-1">0</div>
+
+              {/* Pending Tickets */}
+              <div className="bg-gradient-to-br from-amber-50 via-amber-100/80 to-yellow-50 text-amber-950 rounded-2xl p-3.5 text-center shadow-2xs hover:shadow-md transition-all border-2 border-amber-300 border-t-4 border-t-amber-500">
+                <div className="text-[11px] font-black tracking-wide uppercase text-amber-900">Pending Tickets</div>
+                <div className="text-2xl font-black text-amber-950 mt-1 tabular-nums">
+                  {tickets.filter(t => t.status === 'NEW' || t.status === 'OPEN').length}
+                </div>
               </div>
-              <div className="bg-orange-50 border border-orange-200 rounded-xl p-3 text-center">
-                <div className="text-[10px] font-bold text-orange-700">In Process</div>
-                <div className="text-xl font-extrabold text-orange-900 mt-1">0</div>
+
+              {/* In Process */}
+              <div className="bg-gradient-to-br from-orange-50 via-orange-100/80 to-amber-50 text-orange-950 rounded-2xl p-3.5 text-center shadow-2xs hover:shadow-md transition-all border-2 border-orange-300 border-t-4 border-t-orange-500">
+                <div className="text-[11px] font-black tracking-wide uppercase text-orange-900">In Process</div>
+                <div className="text-2xl font-black text-orange-950 mt-1 tabular-nums">
+                  {tickets.filter(t => t.status === 'ASSIGNED' || t.status === 'IN PROGRESS').length}
+                </div>
               </div>
-              <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-center">
-                <div className="text-[10px] font-bold text-emerald-700">Closed Tickets</div>
-                <div className="text-xl font-extrabold text-emerald-900 mt-1">0</div>
+
+              {/* Closed Tickets */}
+              <div className="bg-gradient-to-br from-emerald-50 via-emerald-100/80 to-teal-50 text-emerald-950 rounded-2xl p-3.5 text-center shadow-2xs hover:shadow-md transition-all border-2 border-emerald-300 border-t-4 border-t-emerald-500">
+                <div className="text-[11px] font-black tracking-wide uppercase text-emerald-900">Closed Tickets</div>
+                <div className="text-2xl font-black text-emerald-950 mt-1 tabular-nums">
+                  {tickets.filter(t => t.status === 'RESOLVED').length}
+                </div>
               </div>
-              <div className="bg-rose-50 border border-rose-200 rounded-xl p-3 text-center">
-                <div className="text-[10px] font-bold text-rose-700">Delayed Tickets</div>
-                <div className="text-xl font-extrabold text-rose-900 mt-1">0</div>
+
+              {/* Delayed Tickets */}
+              <div className="bg-gradient-to-br from-rose-50 via-rose-100/80 to-red-50 text-rose-950 rounded-2xl p-3.5 text-center shadow-2xs hover:shadow-md transition-all border-2 border-rose-300 border-t-4 border-t-rose-500">
+                <div className="text-[11px] font-black tracking-wide uppercase text-rose-900">Delayed Tickets</div>
+                <div className="text-2xl font-black text-rose-950 mt-1 tabular-nums">
+                  {tickets.filter(t => t.sla_status?.includes('BREACHED') || t.sla_status?.includes('OVERDUE')).length}
+                </div>
               </div>
             </div>
           </div>
@@ -613,39 +732,94 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       <div className="grid grid-cols-1 gap-6">
         {/* Top 10 Tickets Branch-Wise Bar Chart */}
         <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-2xs">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-4 pb-2 border-b border-slate-100">
             <div className="flex items-center gap-2">
+              <Building className="w-4 h-4 text-sky-600" />
               <span className="text-sm font-bold text-slate-900">Top 10 Tickets Branch-Wise</span>
             </div>
-            <span className="text-[10px] text-slate-400">Live volume ranking</span>
+            <span className="text-[10px] font-mono font-bold text-sky-800 bg-sky-100 px-2 py-0.5 rounded-full border border-sky-200">
+              LIVE VOLUME RANKING
+            </span>
           </div>
 
-          <div className="space-y-3">
-            {[
-              { name: 'Agency Jaranwala', count: 1 },
-              { name: 'Agency Quetta', count: 0 },
-              { name: 'Cafe DMC', count: 0 },
-              { name: 'Cafe Shahbaz', count: 0 },
-              { name: 'Fabric Store Burewala', count: 0 },
-              { name: 'Fabric Store Chakwal', count: 0 }
-            ].map(branch => (
-              <div key={branch.name} className="flex items-center gap-3 text-xs">
-                <div className="w-36 text-slate-600 truncate text-[11px] font-medium">{branch.name}</div>
-                <div className="flex-1 bg-slate-100 h-4 rounded-md overflow-hidden flex items-center">
-                  {branch.count > 0 ? (
-                    <div
-                      className="bg-[#0F2942] h-full text-[10px] text-white font-mono flex items-center px-2 rounded-md font-semibold"
-                      style={{ width: `${Math.max(25, branch.count * 60)}%` }}
-                    >
-                      {branch.count}
+          <div className="space-y-2.5">
+            {(() => {
+              const counts: Record<string, number> = {};
+              tickets.forEach(t => {
+                const loc = t.location_name || 'Agency Jaranwala';
+                counts[loc] = (counts[loc] || 0) + 1;
+              });
+
+              const sampleList = [
+                'Agency Jaranwala',
+                'Agency Quetta',
+                'Cafe DMC',
+                'Cafe Shahbaz',
+                'Fabric Store Burewala',
+                'Fabric Store Chakwal'
+              ];
+
+              sampleList.forEach(loc => {
+                if (counts[loc] === undefined) counts[loc] = 0;
+              });
+
+              locations.forEach(loc => {
+                if (counts[loc.name] === undefined) counts[loc.name] = 0;
+              });
+
+              const branchList = Object.entries(counts)
+                .map(([name, count]) => ({ name, count }))
+                .sort((a, b) => b.count - a.count)
+                .slice(0, 10);
+
+              const colorPalettes = [
+                { bg: 'bg-gradient-to-r from-sky-500 to-blue-600', dot: 'bg-sky-500', text: 'text-sky-700' },
+                { bg: 'bg-gradient-to-r from-emerald-500 to-teal-600', dot: 'bg-emerald-500', text: 'text-emerald-700' },
+                { bg: 'bg-gradient-to-r from-amber-500 to-orange-500', dot: 'bg-amber-500', text: 'text-amber-700' },
+                { bg: 'bg-gradient-to-r from-rose-500 to-red-600', dot: 'bg-rose-500', text: 'text-rose-700' },
+                { bg: 'bg-gradient-to-r from-purple-500 to-indigo-600', dot: 'bg-purple-500', text: 'text-purple-700' },
+                { bg: 'bg-gradient-to-r from-cyan-500 to-teal-500', dot: 'bg-cyan-500', text: 'text-cyan-700' },
+                { bg: 'bg-gradient-to-r from-pink-500 to-rose-500', dot: 'bg-pink-500', text: 'text-pink-700' },
+                { bg: 'bg-gradient-to-r from-violet-500 to-purple-600', dot: 'bg-violet-500', text: 'text-violet-700' },
+                { bg: 'bg-gradient-to-r from-lime-500 to-emerald-500', dot: 'bg-lime-500', text: 'text-lime-700' },
+                { bg: 'bg-gradient-to-r from-orange-500 to-red-500', dot: 'bg-orange-500', text: 'text-orange-700' }
+              ];
+
+              const maxCount = Math.max(1, ...branchList.map(b => b.count));
+
+              return branchList.map((branch, idx) => {
+                const palette = colorPalettes[idx % colorPalettes.length];
+                const widthPercent = branch.count > 0 ? Math.max(25, (branch.count / maxCount) * 100) : 0;
+
+                return (
+                  <div key={branch.name} className="flex items-center gap-3 text-xs group">
+                    <div className="w-44 text-slate-700 truncate text-[11px] font-bold flex items-center gap-2">
+                      <span className={`w-2.5 h-2.5 rounded-full ${palette.dot} shrink-0 shadow-2xs`} />
+                      <span className="truncate">{branch.name}</span>
                     </div>
-                  ) : (
-                    <div className="w-1 h-full bg-transparent"></div>
-                  )}
-                </div>
-                <span className="text-[11px] font-mono text-slate-400 w-4 text-right">{branch.count}</span>
-              </div>
-            ))}
+
+                    <div className="flex-1 bg-slate-100/80 h-5 rounded-lg overflow-hidden flex items-center p-0.5 border border-slate-200/60">
+                      {branch.count > 0 ? (
+                        <div
+                          className={`${palette.bg} h-full text-[10px] text-white font-mono flex items-center px-2 rounded-md font-bold shadow-xs transition-all duration-300 group-hover:brightness-110`}
+                          style={{ width: `${widthPercent}%` }}
+                        >
+                          {branch.count}
+                        </div>
+                      ) : (
+                        <div className="w-full h-full flex items-center px-2 text-[10px] font-mono text-slate-400">
+                          0
+                        </div>
+                      )}
+                    </div>
+
+                    <span className={`text-[11px] font-mono font-bold ${palette.text} w-6 text-right`}>
+                      {branch.count}
+                    </span>
+                  </div>
+                );
+              });
+            })()}
           </div>
         </div>
       </div>

@@ -538,12 +538,27 @@ export const TechnicianTicketsView: React.FC<TechnicianTicketsViewProps> = ({
                       {ticket.subject}
                     </td>
                     <td className="py-3.5 px-4">
-                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold shadow-2xs ${
+                        {
+                          NEW: 'bg-indigo-600 text-white',
+                          OPEN: 'bg-sky-600 text-white',
+                          ASSIGNED: 'bg-blue-600 text-white',
+                          'IN PROGRESS': 'bg-purple-600 text-white',
+                          RESOLVED: 'bg-slate-900 text-emerald-400 border border-emerald-500/40'
+                        }[ticket.status] || 'bg-slate-800 text-white'
+                      }`}>
                         {ticket.status}
                       </span>
                     </td>
                     <td className="py-3.5 px-4">
-                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold shadow-2xs ${
+                        {
+                          CRITICAL: 'bg-gradient-to-r from-rose-600 to-red-600 text-white',
+                          HIGH: 'bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950',
+                          MEDIUM: 'bg-gradient-to-r from-sky-500 to-blue-600 text-white',
+                          LOW: 'bg-gradient-to-r from-teal-500 to-emerald-600 text-white'
+                        }[ticket.priority] || 'bg-slate-700 text-white'
+                      }`}>
                         {ticket.priority}
                       </span>
                     </td>
